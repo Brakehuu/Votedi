@@ -42,13 +42,18 @@ export function HomeHero() {
         </div>
 
         <h1>
-          Cả nhóm rủ nhau chọn mẫu nhưng mãi không chốt được?
-          <span className="g">Vote Đi để chốt ngay!</span>
+          <span className="q">
+            Cả nhóm rủ nhau chọn mẫu nhưng <em>mãi không chốt được?</em>
+          </span>
+          <span className="a">
+            <span className="pill">Vote Đi</span>
+            <span>để chốt ngay!</span>
+          </span>
         </h1>
 
         <p className="lead">
-          Tải ảnh các mẫu áo, logo, sản phẩm lên rồi gửi link cho cả nhóm. Vote vòng loại, bốc thăm vào nhánh, đấu
-          loại trực tiếp như World Cup. <strong>Hết giờ là có mẫu vô địch.</strong>
+          Tải ảnh mẫu áo, logo, sản phẩm lên rồi gửi link cho cả nhóm. Vote vòng loại, đấu loại trực tiếp như World
+          Cup. <strong>Hết giờ là có mẫu vô địch.</strong>
         </p>
 
         <div className="hero-cta" data-hero-cta>

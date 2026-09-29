@@ -440,22 +440,81 @@
   box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.18);
   flex-shrink: 0;
 }
-.home h1 {
-  margin-top: 24px;
-  font-size: clamp(36px, 4.9vw, 62px);
-  line-height: 1.07;
+.home .hero h1 {
+  margin-top: 22px;
   font-weight: 800;
-  letter-spacing: -0.037em;
+}
+.home .hero h1 .q {
+  display: block;
+  max-width: 22ch;
+  font-size: clamp(24px, 2.5vw, 32px);
+  font-weight: 800;
+  line-height: 1.28;
+  letter-spacing: -0.025em;
+  color: #0c1b20;
   text-wrap: balance;
 }
-.home h1 .g {
-  display: block;
-  margin-top: 0.12em;
-  background: var(--grad);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  padding-bottom: 0.08em;
+.home .hero h1 .q em {
+  font-style: normal;
+  color: #0b7f7a;
+}
+.home .hero h1 .a {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.18em 0.28em;
+  margin-top: 14px;
+  font-size: clamp(38px, 4.3vw, 56px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  color: #0c1b20;
+}
+.home .hero h1 .pill {
+  display: inline-block;
+  padding: 0.04em 0.32em 0.1em;
+  border-radius: 0.28em;
+  background: linear-gradient(135deg, #0fb59e 0%, #0b9a96 50%, #0a7fa0 100%);
+  color: #fff;
+  box-shadow:
+    0 0.14em 0.4em -0.12em rgba(8, 120, 140, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transform: rotate(-2deg);
+}
+.dark .home .hero h1 .q,
+.dark .home .hero h1 .a {
+  color: var(--foreground);
+}
+.dark .home .hero h1 .q em {
+  color: #3fd1c3;
+}
+.home .hero .proof,
+.home .hero .lead,
+.home .hero .ticks {
+  color: #3f5358;
+  font-weight: 500;
+}
+.home .hero .lead {
+  max-width: 32rem;
+  margin-top: 20px;
+  font-size: 17px;
+}
+.home .hero .lead strong {
+  color: var(--foreground);
+  font-weight: 700;
+}
+.dark .home .hero .proof,
+.dark .home .hero .lead,
+.dark .home .hero .ticks {
+  color: var(--muted-foreground);
+}
+.home .hero .btn-ghost {
+  border: 1.5px solid #c5d6d6;
+  background: #fff;
+}
+.dark .home .hero .btn-ghost {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
 }
 .lead {
   max-width: 34rem;
@@ -1273,6 +1332,15 @@
   }
   .home .hero {
     padding-top: 28px;
+  }
+  .home .hero h1 .q {
+    font-size: 23px;
+  }
+  .home .hero h1 .a {
+    font-size: 38px;
+  }
+  .home .hero .lead {
+    font-size: 16px;
   }
   .proof {
     font-size: 13px;
