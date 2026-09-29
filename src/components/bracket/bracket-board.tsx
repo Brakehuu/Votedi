@@ -578,7 +578,7 @@ function SideRow({
     >
       <span className="ko-th">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={item.image_url} alt="" className={cn(item.is_transparent && "drop-shadow")} />
+        <img src={item.image_url ?? undefined} alt="" className={cn(item.is_transparent && "drop-shadow")} />
         {seed ? <span className="ko-seed">#{seed}</span> : null}
         {chosen ? (
           <span className="ko-me-dot" aria-hidden>
@@ -607,7 +607,7 @@ function CupBadge({ item }: { item?: Item }) {
       <span className="ko-th">
         {item ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={item.image_url} alt="" className={cn(item.is_transparent && "drop-shadow")} />
+          <img src={item.image_url ?? undefined} alt="" className={cn(item.is_transparent && "drop-shadow")} />
         ) : (
           <span aria-hidden>🏆</span>
         )}

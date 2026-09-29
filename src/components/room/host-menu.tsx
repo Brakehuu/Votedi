@@ -30,6 +30,7 @@ export function HostMenu() {
     setPassword,
     setMemberUpload,
     kickMember,
+    closeRoom,
   } = useRoom();
   const mounted = useMounted();
   const [open, setOpen] = useState(false);
@@ -85,11 +86,17 @@ export function HostMenu() {
       }
       return map;
     }
+    if (status === "open") {
+      for (const member of bundle.members) {
+        map.set(member.id, bundle.votes.some((vote) => vote.member_id === member.id) ? "Đã vote" : "Chưa vote");
+      }
+      return map;
+    }
     for (const member of bundle.members) {
       map.set(member.id, onlineIds.has(member.id) ? "Đang online" : "Chưa online");
     }
     return map;
-  }, [bundle.matchVotes, bundle.matches, bundle.members, bundle.qualifyVotes, bundle.room.votes_per_member, onlineIds, status]);
+  }, [bundle.matchVotes, bundle.matches, bundle.members, bundle.qualifyVotes, bundle.room.votes_per_member, bundle.votes, onlineIds, status]);
 
   useEffect(() => {
     if (!open && !confirm) return;
@@ -207,7 +214,20 @@ export function HostMenu() {
   }
 
   const canControlRound = status === "qualify" || status === "knockout";
+  const canCloseQuick = bundle.room.format !== "bracket" && status === "open";
   const narrow = status === "qualify";
+
+  function askCloseQuick() {
+    setConfirm({
+      title: "Chốt kết quả phòng?",
+      body: "Mọi người sẽ thấy lựa chọn thắng. Không vote thêm được nữa.",
+      ok: "Chốt kết quả",
+      run: async () => {
+        await closeRoom();
+        setOpen(false);
+      },
+    });
+  }
 
   const layer = mounted
     ? createPortal(
@@ -255,6 +275,21 @@ export function HostMenu() {
                       <small>
                         {status === "qualify" ? `Chốt top ${size} vào sơ đồ đấu` : "Chốt kết quả các cặp đang vote"}
                       </small>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
+            {canCloseQuick ? (
+              <div className="rs-grp">
+                <h3>Điều khiển vote</h3>
+                <div className="rs-list">
+                  <button type="button" className="rs-opt danger" onClick={askCloseQuick}>
+                    <span className="rs-oi"><Flag aria-hidden /></span>
+                    <span className="rs-grow">
+                      Chốt kết quả
+                      <small>Khóa vote và công bố lựa chọn thắng</small>
                     </span>
                   </button>
                 </div>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { BracketBoard } from "@/components/bracket/bracket-board";
 import { MemberAvatar } from "@/components/room/member-avatar";
 import { SiteFooter } from "@/components/home/footer";
@@ -69,6 +69,7 @@ export default async function ResultsPage({ params }: { params: Promise<{ slug: 
 
   const bundle = await fetchRoomBundle(supabase, preview.id);
   if (!bundle) return <SetupNotice detail="Không tải được dữ liệu phòng." />;
+  if (bundle.room.format !== "bracket") redirect(`/p/${slug}`);
 
   const champion = bundle.items.find((item) => item.id === bundle.room.champion_item_id);
   const finalRound = roundCount(bundle.room.knockout_size);

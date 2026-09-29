@@ -249,7 +249,7 @@ function Pick({
       <button type="button" className="ko-shot" aria-label={`Xem to ${item.title || "mẫu"}`} onClick={onView}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={item.image_url}
+          src={item.image_url ?? undefined}
           alt={item.title || "Mẫu"}
           className={cn(item.is_transparent && "drop-shadow-lg")}
         />

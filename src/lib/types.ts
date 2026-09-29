@@ -1,14 +1,33 @@
+export type FormatId = "quick" | "bracket" | "schedule" | "swipe" | "ranking" | "rating";
 export type RoomMode = "qualify_knockout" | "knockout";
-export type RoomStatus = "lobby" | "qualify" | "drawn" | "knockout" | "done";
+export type RoomStatus = "lobby" | "qualify" | "drawn" | "knockout" | "done" | "open" | "closed";
 export type TieRule = "random" | "host";
 export type SeedingMode = "random" | "manual";
 export type MatchStatus = "pending" | "live" | "done";
+export type ItemType = "image" | "text" | "place" | "link";
+export type ResultsVisibility = "live" | "after_vote" | "after_close";
+
+export type RoomSettings = {
+  max_choices?: number;
+};
+
+export type RoomResultRow = { item_id: string; score: number; votes: number };
+
+export type RoomResult = {
+  format: FormatId;
+  winner_item_id: string | null;
+  tied: boolean;
+  board: RoomResultRow[];
+  closed_at: string;
+};
 
 export type Room = {
   id: string;
   slug: string;
   name: string;
-  mode: RoomMode;
+  format: FormatId;
+  /** Bracket variant; null for non-bracket rooms. */
+  mode: RoomMode | null;
   host_id: string;
   votes_per_member: number;
   qualify_deadline: string | null;
@@ -24,6 +43,17 @@ export type Room = {
   status: RoomStatus;
   champion_item_id: string | null;
   created_at: string;
+  settings: RoomSettings;
+  description: string | null;
+  anonymous: boolean;
+  results_visibility: ResultsVisibility;
+  comments_enabled: boolean;
+  reactions_enabled: boolean;
+  allow_member_options: boolean;
+  template_slug: string | null;
+  deadline: string | null;
+  result: RoomResult | null;
+  closed_at: string | null;
 };
 
 export type RoomPreview = {
@@ -51,9 +81,15 @@ export type Item = {
   id: string;
   room_id: string;
   uploader_member_id: string | null;
-  image_url: string;
+  item_type: ItemType;
+  /** Always set for image items. */
+  image_url: string | null;
   is_transparent: boolean;
   title: string | null;
+  description: string | null;
+  emoji: string | null;
+  price_text: string | null;
+  position: number | null;
   created_at: string;
 };
 
@@ -62,6 +98,15 @@ export type QualifyVote = {
   room_id: string;
   item_id: string;
   member_id: string;
+};
+
+export type Vote = {
+  id: string;
+  room_id: string;
+  item_id: string;
+  member_id: string;
+  value: number;
+  created_at: string;
 };
 
 export type Match = {
@@ -88,6 +133,7 @@ export type RoomBundle = {
   members: Member[];
   items: Item[];
   qualifyVotes: QualifyVote[];
+  votes: Vote[];
   matches: Match[];
   matchVotes: MatchVote[];
   /** Epoch ms when the bundle was fetched; seeds countdowns so SSR and hydration agree. */

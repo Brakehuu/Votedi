@@ -3399,3 +3399,207 @@ body:has(.room-page) .nav {
     padding: 0 14px;
   }
 }
+
+/* ?? Options (OptionCard / OptionMedia) ?? */
+.opt-media {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 40%, #fff, #eaf4f4 80%);
+}
+.opt-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.opt-media-clear img {
+  object-fit: contain;
+  padding: 8%;
+  filter: drop-shadow(0 6px 10px rgba(8, 50, 60, 0.18));
+}
+.opt-media-text {
+  font-size: 28px;
+  line-height: 1;
+  background: linear-gradient(135deg, #e3f6f5 0%, #f4f9f9 100%);
+}
+.opt-media-text.opt-sm {
+  font-size: 22px;
+}
+.opt-media-text.opt-lg {
+  font-size: 56px;
+}
+.opt-media-text.opt-initial {
+  font-weight: 800;
+  color: var(--primary-hover, #0b8c8c);
+}
+.dark .opt-media,
+.dark .opt-media-text {
+  background: linear-gradient(135deg, #12303a 0%, #0f2226 100%);
+}
+.opt-card {
+  position: relative;
+  min-width: 0;
+  border-radius: 20px;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  padding: 8px;
+}
+.dark .opt-card {
+  background: rgba(255, 255, 255, 0.06);
+}
+.opt-card.on {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(14, 165, 164, 0.12);
+}
+.opt-card-media {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 14px;
+  overflow: hidden;
+}
+.opt-zoom-btn {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  cursor: zoom-in;
+}
+.opt-card .ql-zoom {
+  right: 8px;
+  top: 8px;
+  bottom: auto;
+  width: 26px;
+  height: 26px;
+}
+.opt-badge {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  background: var(--grad);
+  color: #fff;
+}
+.opt-card-body {
+  padding: 8px 2px 0;
+  min-width: 0;
+}
+.opt-card-body b {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.opt-card-body p {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--muted-foreground);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.opt-price {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--primary-hover, #0b8c8c);
+}
+.ql-thumb .opt-media {
+  border-radius: inherit;
+}
+.qk-win {
+  display: grid;
+  grid-template-columns: minmax(0, 160px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  margin-top: 14px;
+}
+.qk-win .opt-card {
+  border-width: 2px;
+}
+@media (max-width: 420px) {
+  .qk-win {
+    grid-template-columns: minmax(0, 128px) minmax(0, 1fr);
+    gap: 12px;
+  }
+}
+
+/* ?? Create wizard: format picker ?? */
+.fmt-grid {
+  display: grid;
+  gap: 10px;
+}
+.fmt-card {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 16px;
+  border-radius: 22px;
+  text-align: left;
+}
+.fmt-card.on {
+  box-shadow: inset 0 0 0 2px var(--primary);
+}
+.fmt-ic {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: var(--primary-soft, #e3f6f5);
+  color: var(--primary-hover, #0b8c8c);
+}
+.fmt-ic svg {
+  width: 24px;
+  height: 24px;
+}
+.fmt-card b {
+  display: block;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.fmt-card span.d {
+  display: block;
+  margin-top: 2px;
+  font-size: 14px;
+  color: var(--muted-foreground);
+}
+.fmt-card span.u {
+  display: block;
+  margin-top: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--primary-hover, #0b8c8c);
+}
+.opt-edit-row {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) 44px;
+  gap: 10px;
+  align-items: center;
+}
+.opt-edit-row .opt-thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}

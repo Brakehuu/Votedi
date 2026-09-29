@@ -8,7 +8,7 @@ import { useRoom } from "@/components/room/room-context";
 import { Button } from "@/components/ui/button";
 import { seedNumbersFromMatches, slotsFromMatches, swapSlots } from "@/lib/seeding";
 
-function seedingHint(mode: string, seeding: string) {
+function seedingHint(mode: string | null, seeding: string) {
   if (mode === "qualify_knockout") return "Xếp theo thứ hạng vòng loại.";
   if (seeding === "manual") return "Chạm 2 mẫu trên sơ đồ để đổi chỗ.";
   return "Mẫu được xếp nhánh ngẫu nhiên, thêm hay xóa mẫu sẽ tự xếp lại.";

@@ -165,7 +165,7 @@ export function ImageLightbox({
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={item.image_url}
+            src={item.image_url ?? undefined}
             alt={item.title || "Mẫu"}
             className={cn(
               "max-h-[min(72dvh,900px)] max-w-[min(100%,900px)] object-contain",

@@ -16,7 +16,7 @@ import { reportError } from "@/lib/errors";
 import { roundLabel } from "@/lib/bracket";
 import { fetchRoomBundle } from "@/lib/room-data";
 import { createClient } from "@/lib/supabase/client";
-import type { Match, MatchVote, Member, QualifyVote, RoomBundle, RoomStatus } from "@/lib/types";
+import type { Match, MatchVote, Member, QualifyVote, RoomBundle, RoomStatus, Vote } from "@/lib/types";
 
 type RoomContextValue = {
   bundle: RoomBundle;
@@ -39,6 +39,11 @@ type RoomContextValue = {
   setMemberUpload: (allow: boolean) => Promise<void>;
   extendDeadline: (minutes: 5 | 15) => Promise<void>;
   endRound: () => Promise<void>;
+  castVote: (itemId: string) => Promise<void>;
+  removeVote: (itemId: string) => Promise<void>;
+  clearMyVotes: () => Promise<void>;
+  closeIfDue: () => Promise<void>;
+  closeRoom: () => Promise<void>;
   refresh: () => Promise<void>;
 };
 
@@ -104,6 +109,7 @@ export function RoomProvider({
       }
       if (next.room.status === "knockout") toast.message("Knockout bắt đầu — vào vote đi!");
       if (next.room.status === "done") toast.success("Đã có mẫu vô địch!");
+      if (next.room.status === "closed") toast.success("Nhóm đã chốt kết quả!");
       statusRef.current = next.room.status;
     }
     for (const match of next.matches) {
@@ -130,6 +136,25 @@ export function RoomProvider({
     },
     [initial.room.id, refresh, supabase],
   );
+
+  const closeIfDue = useCallback(async () => {
+    const { error } = await supabase.rpc("close_room_if_due", { p_room_id: initial.room.id });
+    if (error) console.error("[Vote Đi] close_room_if_due", error);
+    await refresh();
+  }, [initial.room.id, refresh, supabase]);
+
+  const closeRoom = useCallback(async () => {
+    const { error } = await supabase.rpc("close_room", { p_room_id: initial.room.id });
+    if (error) {
+      toast.error(reportError(error));
+      return;
+    }
+    toast.success("Đã chốt kết quả");
+    await refresh();
+  }, [initial.room.id, refresh, supabase]);
+
+  const isBracket = initial.room.format === "bracket";
+  const settle = isBracket ? advance : closeIfDue;
 
   const drawBracket = useCallback(async () => {
     const { error } = await supabase.rpc("draw_bracket", { p_room_id: initial.room.id });
@@ -191,7 +216,7 @@ export function RoomProvider({
   );
 
   useEffect(() => {
-    void advance(false);
+    void settle();
     const onFocus = () => void refresh();
     const onOnline = () => void refresh();
     window.addEventListener("focus", onFocus);
@@ -203,16 +228,21 @@ export function RoomProvider({
       timer = window.setTimeout(() => void refresh(), 200);
     };
 
-    const channel = supabase
+    const byRoom = `room_id=eq.${initial.room.id}`;
+    let channel = supabase
       .channel(`room-${initial.room.id}`, {
         config: { presence: { key: me.id } },
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "rooms", filter: `id=eq.${initial.room.id}` }, schedule)
-      .on("postgres_changes", { event: "*", schema: "public", table: "members", filter: `room_id=eq.${initial.room.id}` }, schedule)
-      .on("postgres_changes", { event: "*", schema: "public", table: "items", filter: `room_id=eq.${initial.room.id}` }, schedule)
-      .on("postgres_changes", { event: "*", schema: "public", table: "qualify_votes", filter: `room_id=eq.${initial.room.id}` }, schedule)
-      .on("postgres_changes", { event: "*", schema: "public", table: "matches", filter: `room_id=eq.${initial.room.id}` }, schedule)
-      .on("postgres_changes", { event: "*", schema: "public", table: "match_votes" }, schedule)
+      .on("postgres_changes", { event: "*", schema: "public", table: "members", filter: byRoom }, schedule)
+      .on("postgres_changes", { event: "*", schema: "public", table: "items", filter: byRoom }, schedule);
+    channel = isBracket
+      ? channel
+          .on("postgres_changes", { event: "*", schema: "public", table: "qualify_votes", filter: byRoom }, schedule)
+          .on("postgres_changes", { event: "*", schema: "public", table: "matches", filter: byRoom }, schedule)
+          .on("postgres_changes", { event: "*", schema: "public", table: "match_votes" }, schedule)
+      : channel.on("postgres_changes", { event: "*", schema: "public", table: "votes", filter: byRoom }, schedule);
+    channel
       .on("presence", { event: "sync" }, () => {
         const state = channel.presenceState<{ member_id: string }>();
         const ids = new Set<string>();
@@ -235,7 +265,7 @@ export function RoomProvider({
       window.clearTimeout(timer);
       void supabase.removeChannel(channel);
     };
-  }, [advance, initial.room.id, me.display_name, me.id, refresh, supabase]);
+  }, [initial.room.id, isBracket, me.display_name, me.id, refresh, settle, supabase]);
 
   const toggleQualify = useCallback(
     async (itemId: string) => {
@@ -437,6 +467,77 @@ export function RoomProvider({
     await refresh();
   }, [initial.room.id, refresh, supabase]);
 
+  const writeVotes = useCallback(
+    async (next: (votes: Vote[]) => Vote[], run: () => PromiseLike<{ error: unknown }>) => {
+      const previous = bundle.votes;
+      pause.current += 1;
+      setBundle((current) => ({ ...current, votes: next(current.votes) }));
+      const { error } = await run();
+      pause.current -= 1;
+      if (error) {
+        setBundle((current) => ({ ...current, votes: previous }));
+        toast.error(reportError(error));
+        await closeIfDue();
+        return false;
+      }
+      return true;
+    },
+    [bundle.votes, closeIfDue],
+  );
+
+  const castVote = useCallback(
+    async (itemId: string) => {
+      const max = Math.max(1, bundle.room.settings.max_choices ?? 1);
+      const mine = bundle.votes.filter((vote) => vote.member_id === me.id);
+      if (mine.some((vote) => vote.item_id === itemId)) return;
+      if (max > 1 && mine.length >= max) {
+        toast.error(`Bạn chỉ chọn được tối đa ${max}. Bỏ chọn một lựa chọn để đổi.`);
+        return;
+      }
+      const optimistic: Vote = {
+        id: `tmp-${itemId}`,
+        room_id: bundle.room.id,
+        item_id: itemId,
+        member_id: me.id,
+        value: 1,
+        created_at: new Date().toISOString(),
+      };
+      const ok = await writeVotes(
+        (votes) => [...(max === 1 ? votes.filter((vote) => vote.member_id !== me.id) : votes), optimistic],
+        () => supabase.rpc("cast_vote", { p_item_id: itemId, p_value: 1 }),
+      );
+      if (!ok) return;
+      vibrateSoft();
+      const title = bundle.items.find((item) => item.id === itemId)?.title || "lựa chọn";
+      toast.success(`Đã chọn ${title}`);
+      await closeIfDue();
+    },
+    [bundle.items, bundle.room.id, bundle.room.settings.max_choices, bundle.votes, closeIfDue, me.id, supabase, writeVotes],
+  );
+
+  const removeVote = useCallback(
+    async (itemId: string) => {
+      const ok = await writeVotes(
+        (votes) => votes.filter((vote) => !(vote.member_id === me.id && vote.item_id === itemId)),
+        () => supabase.rpc("remove_vote", { p_item_id: itemId }),
+      );
+      if (!ok) return;
+      toast.success("Đã bỏ chọn");
+      await closeIfDue();
+    },
+    [closeIfDue, me.id, supabase, writeVotes],
+  );
+
+  const clearMyVotes = useCallback(async () => {
+    const ok = await writeVotes(
+      (votes) => votes.filter((vote) => vote.member_id !== me.id),
+      () => supabase.rpc("clear_my_votes", { p_room_id: initial.room.id }),
+    );
+    if (!ok) return;
+    toast.success("Đã bỏ chọn hết");
+    await closeIfDue();
+  }, [closeIfDue, initial.room.id, me.id, supabase, writeVotes]);
+
   const value = useMemo(
     () => ({
       bundle,
@@ -459,11 +560,20 @@ export function RoomProvider({
       setMemberUpload,
       extendDeadline,
       endRound,
+      castVote,
+      removeVote,
+      clearMyVotes,
+      closeIfDue,
+      closeRoom,
       refresh,
     }),
     [
       advance,
       bundle,
+      castVote,
+      clearMyVotes,
+      closeIfDue,
+      closeRoom,
       drawBracket,
       endRound,
       extendDeadline,
@@ -473,6 +583,7 @@ export function RoomProvider({
       onlineIds,
       refresh,
       removeItem,
+      removeVote,
       renameItem,
       setBracket,
       setLocked,

@@ -60,7 +60,10 @@ export default async function RoomPage({
     }
     member = row;
     if (member) {
-      await supabase.rpc("advance_room", { p_room_id: preview.id, p_host_start: false });
+      await Promise.all([
+        supabase.rpc("advance_room", { p_room_id: preview.id, p_host_start: false }),
+        supabase.rpc("close_room_if_due", { p_room_id: preview.id }),
+      ]);
       bundle = await fetchRoomBundle(supabase, preview.id);
     }
   }

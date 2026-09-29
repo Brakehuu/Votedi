@@ -40,7 +40,7 @@ export function ZoomableItemImage({
           setOpen(true);
         }}
       >
-        <ItemImage src={item.image_url} alt={item.title || "Mẫu"} transparent={item.is_transparent} />
+        <ItemImage src={item.image_url ?? undefined} alt={item.title || "Mẫu"} transparent={item.is_transparent} />
         <span className="zoom-badge" aria-hidden>
           <ZoomIcon />
         </span>

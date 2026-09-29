@@ -25,8 +25,13 @@ const MESSAGES: Record<string, string> = {
   TOO_LARGE: "Ảnh lớn hơn 10MB. Hãy nén nhỏ hơn rồi tải lại.",
   TOO_MANY_ITEMS: "Mỗi phòng tối đa 32 mẫu.",
   KNOCKOUT_MAX_ITEMS: "Knockout tối đa 16 mẫu.",
-  PGRST202: "Chưa có hàm trên Supabase (schema cache). Chạy 0007_upload_password.sql rồi thử lại.",
-  PGRST204: "Thiếu cột trên bảng. Chạy lần lượt 0002 → 0003 → 0004 → 0005 → 0006 → 0007.",
+  TOO_MANY_OPTIONS: "Phòng đã đủ số lựa chọn tối đa.",
+  OPTION_TYPE: "Loại lựa chọn này chưa hỗ trợ.",
+  FORMAT_UNAVAILABLE: "Kiểu vote này sắp có. Chọn kiểu khác nhé.",
+  ROOM_CLOSED: "Phòng đã chốt kết quả, không vote thêm được.",
+  END_TIME_RANGE: "Hạn vote phải ở tương lai và tối đa 30 ngày.",
+  PGRST202: "Chưa có hàm trên Supabase (schema cache). Chạy migration mới nhất (0008_formats_foundation.sql) rồi thử lại.",
+  PGRST204: "Thiếu cột trên bảng. Chạy lần lượt các migration 0002 → 0008.",
 };
 
 type ErrorLike = {
@@ -57,7 +62,7 @@ export function errorMessage(error: unknown): string {
     return "Hãy bật Anonymous sign-in trong Supabase rồi tải lại trang.";
   }
   if (/Failed to find|Could not find the function|schema cache/i.test(raw)) {
-    return `Chưa có RPC trên server (schema cache). Chạy lần lượt 0006_fixes.sql và 0007_upload_password.sql rồi thử lại. Chi tiết: ${raw}${code ? ` · ${code}` : ""}`;
+    return `Chưa có RPC trên server (schema cache). Chạy các migration còn thiếu (mới nhất: 0008_formats_foundation.sql) rồi thử lại. Chi tiết: ${raw}${code ? ` · ${code}` : ""}`;
   }
   if (/Failed to fetch|NetworkError|network/i.test(raw)) {
     return "Mất mạng. Kiểm tra kết nối rồi thử lại.";
@@ -76,6 +81,9 @@ export function errorMessage(error: unknown): string {
   }
   if (/has_password|password_hash.*not-null/i.test(raw)) {
     return `Database chưa cập nhật phần mật khẩu. Chạy supabase/migrations/0007_upload_password.sql rồi thử lại. Chi tiết: ${raw}`;
+  }
+  if (/column .*(format|settings|item_type|deadline)|relation .*votes/i.test(raw)) {
+    return `Database chưa có phần kiểu vote mới. Chạy supabase/migrations/0008_formats_foundation.sql rồi thử lại. Chi tiết: ${raw}`;
   }
   if (/seeding_mode|column .* does not exist/i.test(raw)) {
     return `Thiếu cột seeding_mode. Chạy supabase/migrations/0005_seeding.sql rồi thử lại. Chi tiết: ${raw}`;

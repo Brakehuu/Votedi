@@ -1,11 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { DrawnView } from "@/components/room/drawn-view";
+import { FormatVoteView, isNarrowRoom } from "@/components/formats/registry";
 import { JoinForm } from "@/components/room/join-form";
-import { KnockoutView } from "@/components/room/knockout-view";
-import { LobbyView } from "@/components/room/lobby-view";
-import { QualifyView } from "@/components/room/qualify-view";
 import { RoomProvider, useRoom } from "@/components/room/room-context";
 import { RoomTopBar } from "@/components/room/room-top-bar";
 import { SharePanel } from "@/components/share-panel";
@@ -52,12 +49,9 @@ function RoomBody({ showShare }: { showShare: boolean }) {
 
   return (
     <main className="room-page mx-auto w-full max-w-[1180px] px-4 pb-8" data-status={status}>
-      <div className={status === "qualify" ? "room-col room-col-narrow" : "room-col"}>
+      <div className={isNarrowRoom(bundle.room) ? "room-col room-col-narrow" : "room-col"}>
         <RoomTopBar />
-        {status === "lobby" ? <LobbyView /> : null}
-        {status === "drawn" ? <DrawnView /> : null}
-        {status === "qualify" ? <QualifyView /> : null}
-        {status === "knockout" || status === "done" ? <KnockoutView /> : null}
+        <FormatVoteView room={bundle.room} />
       </div>
       <div className={offline ? "room-offline show" : "room-offline"} role="status" aria-live="polite">
         {offline ? "Đang kết nối lại... Dữ liệu sẽ tự đồng bộ khi có mạng." : null}

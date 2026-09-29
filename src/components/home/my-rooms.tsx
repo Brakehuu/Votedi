@@ -14,6 +14,8 @@ const STATUS: Record<RoomStatus, string> = {
   drawn: "Đã xếp nhánh",
   knockout: "Knockout",
   done: "Đã chốt",
+  open: "Đang vote",
+  closed: "Đã chốt",
 };
 
 type RoomCard = {

@@ -6,7 +6,7 @@ export function ItemImage({
   transparent,
   className,
 }: {
-  src: string;
+  src: string | undefined;
   alt: string;
   transparent: boolean;
   className?: string;

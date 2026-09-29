@@ -284,7 +284,7 @@ export function QualifyView() {
                     onClick={() => setLbId(item.id)}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={item.image_url} alt="" className={cn(item.is_transparent && "drop-shadow")} />
+                    <img src={item.image_url ?? undefined} alt="" className={cn(item.is_transparent && "drop-shadow")} />
                     <span className="ql-zoom" aria-hidden>
                       <ZoomIcon />
                     </span>
@@ -320,7 +320,7 @@ export function QualifyView() {
               <button type="button" className="ql-img" aria-label={`Xem to ${item.title || "mẫu"}`} onClick={() => setLbId(item.id)}>
                 <span className="ql-badge">#{index + 1}</span>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={item.image_url} alt="" className={cn(item.is_transparent && "drop-shadow")} />
+                <img src={item.image_url ?? undefined} alt="" className={cn(item.is_transparent && "drop-shadow")} />
                 <span className="ql-zoom" aria-hidden>
                   <ZoomIcon />
                 </span>
