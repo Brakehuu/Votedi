@@ -27,6 +27,7 @@ export function RoomTopBar() {
           <span>
             <i className="room-online-dot" aria-hidden />
             {me.is_host ? `${count} người · Bạn là chủ phòng` : `${count} người trong phòng`}
+            {bundle.room.anonymous ? " · Ẩn danh" : ""}
           </span>
         </div>
         <div className="room-people" aria-hidden>

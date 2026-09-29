@@ -129,6 +129,26 @@ export async function fetchRoomBundle(
     matchVotes = (data ?? []) as MatchVote[];
   }
 
+  const itemIds = items.map((item) => item.id);
+  let reactions: import("@/lib/types").Reaction[] = [];
+  let comments: import("@/lib/types").Comment[] = [];
+  try {
+    const [reactionsRes, commentsRes] = await Promise.all([
+      itemIds.length
+        ? supabase.from("reactions").select("item_id, member_id, emoji, created_at").in("item_id", itemIds)
+        : Promise.resolve({ data: [] as import("@/lib/types").Reaction[], error: null }),
+      supabase
+        .from("comments")
+        .select("id, room_id, item_id, member_id, body, created_at, deleted_at")
+        .eq("room_id", roomId)
+        .order("created_at", { ascending: true }),
+    ]);
+    if (!reactionsRes.error) reactions = (reactionsRes.data ?? []) as import("@/lib/types").Reaction[];
+    if (!commentsRes.error) comments = (commentsRes.data ?? []) as import("@/lib/types").Comment[];
+  } catch {
+    /* Phase 2 tables not migrated yet */
+  }
+
   return {
     room,
     members: (membersRes.data ?? []) as Member[],
@@ -141,6 +161,8 @@ export async function fetchRoomBundle(
     votes: ((votesRes.data ?? []) as Vote[]).map((vote) => ({ ...vote, value: Number(vote.value) })),
     matches,
     matchVotes,
+    reactions,
+    comments,
     serverNow: Date.now(),
   };
 }

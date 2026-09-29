@@ -152,6 +152,23 @@ export type MatchVote = {
   item_id: string;
 };
 
+export type Reaction = {
+  item_id: string;
+  member_id: string;
+  emoji: string;
+  created_at?: string;
+};
+
+export type Comment = {
+  id: string;
+  room_id: string;
+  item_id: string | null;
+  member_id: string;
+  body: string;
+  created_at: string;
+  deleted_at: string | null;
+};
+
 export type RoomBundle = {
   room: Room;
   members: Member[];
@@ -160,6 +177,8 @@ export type RoomBundle = {
   votes: Vote[];
   matches: Match[];
   matchVotes: MatchVote[];
+  reactions: Reaction[];
+  comments: Comment[];
   /** Epoch ms when the bundle was fetched; seeds countdowns so SSR and hydration agree. */
   serverNow: number;
 };

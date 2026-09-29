@@ -42,6 +42,11 @@ type RoomContextValue = {
   addOptions: (payload: unknown[]) => Promise<boolean>;
   removeOption: (itemId: string) => Promise<void>;
   updateOption: (itemId: string, patch: Record<string, unknown>) => Promise<boolean>;
+  setAnonymous: (value: boolean) => Promise<void>;
+  setResultsVisibility: (value: import("@/lib/types").ResultsVisibility) => Promise<void>;
+  toggleReaction: (itemId: string, emoji: string) => Promise<void>;
+  addComment: (body: string, itemId?: string | null) => Promise<boolean>;
+  deleteComment: (commentId: string) => Promise<void>;
   extendDeadline: (minutes: 5 | 15) => Promise<void>;
   endRound: () => Promise<void>;
   castVote: (itemId: string) => Promise<void>;
@@ -231,6 +236,78 @@ export function RoomProvider({
     [refresh, supabase],
   );
 
+  const setAnonymous = useCallback(
+    async (value: boolean) => {
+      const { error } = await supabase.rpc("host_set_anonymous", {
+        p_room_id: initial.room.id,
+        p_anonymous: value,
+      });
+      if (error) {
+        toast.error(reportError(error));
+        return;
+      }
+      toast.success(value ? "Đã bật ẩn danh" : "Đã tắt ẩn danh");
+      await refresh();
+    },
+    [initial.room.id, refresh, supabase],
+  );
+
+  const setResultsVisibility = useCallback(
+    async (value: import("@/lib/types").ResultsVisibility) => {
+      const { error } = await supabase.rpc("host_set_results_visibility", {
+        p_room_id: initial.room.id,
+        p_visibility: value,
+      });
+      if (error) {
+        toast.error(reportError(error));
+        return;
+      }
+      await refresh();
+    },
+    [initial.room.id, refresh, supabase],
+  );
+
+  const toggleReaction = useCallback(
+    async (itemId: string, emoji: string) => {
+      const { error } = await supabase.rpc("toggle_reaction", { p_item_id: itemId, p_emoji: emoji });
+      if (error) {
+        toast.error(reportError(error));
+        return;
+      }
+      await refresh();
+    },
+    [refresh, supabase],
+  );
+
+  const addComment = useCallback(
+    async (body: string, itemId?: string | null) => {
+      const { error } = await supabase.rpc("add_comment", {
+        p_room_id: initial.room.id,
+        p_body: body,
+        p_item_id: itemId ?? null,
+      });
+      if (error) {
+        toast.error(reportError(error));
+        return false;
+      }
+      await refresh();
+      return true;
+    },
+    [initial.room.id, refresh, supabase],
+  );
+
+  const deleteComment = useCallback(
+    async (commentId: string) => {
+      const { error } = await supabase.rpc("delete_comment", { p_comment_id: commentId });
+      if (error) {
+        toast.error(reportError(error));
+        return;
+      }
+      await refresh();
+    },
+    [refresh, supabase],
+  );
+
   const isBracket = initial.room.format === "bracket";
   const settle = isBracket ? advance : closeIfDue;
 
@@ -313,7 +390,9 @@ export function RoomProvider({
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "rooms", filter: `id=eq.${initial.room.id}` }, schedule)
       .on("postgres_changes", { event: "*", schema: "public", table: "members", filter: byRoom }, schedule)
-      .on("postgres_changes", { event: "*", schema: "public", table: "items", filter: byRoom }, schedule);
+      .on("postgres_changes", { event: "*", schema: "public", table: "items", filter: byRoom }, schedule)
+      .on("postgres_changes", { event: "*", schema: "public", table: "reactions" }, schedule)
+      .on("postgres_changes", { event: "*", schema: "public", table: "comments", filter: byRoom }, schedule);
     channel = isBracket
       ? channel
           .on("postgres_changes", { event: "*", schema: "public", table: "qualify_votes", filter: byRoom }, schedule)
@@ -641,6 +720,11 @@ export function RoomProvider({
       addOptions,
       removeOption,
       updateOption,
+      setAnonymous,
+      setResultsVisibility,
+      toggleReaction,
+      addComment,
+      deleteComment,
       extendDeadline,
       endRound,
       castVote,
@@ -669,6 +753,11 @@ export function RoomProvider({
       removeItem,
       removeOption,
       updateOption,
+      setAnonymous,
+      setResultsVisibility,
+      toggleReaction,
+      addComment,
+      deleteComment,
       removeVote,
       renameItem,
       reopenRoom,

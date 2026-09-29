@@ -33,6 +33,8 @@ const MESSAGES: Record<string, string> = {
   RATE_LIMIT: "Bạn thao tác quá nhanh. Đợi một phút rồi thử lại.",
   PRIVATE_IP: "Link không an toàn (địa chỉ nội bộ).",
   NOT_MAPS: "Đây không phải link Google Maps.",
+  ANON_LOCKED: "Đã có phiếu: chỉ bật ẩn danh được, không tắt lại.",
+  DISABLED: "Chủ phòng đã tắt tính năng này.",
   PGRST202: "Chưa có hàm trên Supabase (schema cache). Chạy migration mới nhất rồi thử lại.",
   PGRST204: "Thiếu cột trên bảng. Chạy lần lượt các migration còn thiếu.",
 };

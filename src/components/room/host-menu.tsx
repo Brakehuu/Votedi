@@ -33,6 +33,8 @@ export function HostMenu() {
     kickMember,
     closeRoom,
     reopenRoom,
+    setAnonymous,
+    setResultsVisibility,
   } = useRoom();
   const mounted = useMounted();
   const [open, setOpen] = useState(false);
@@ -437,6 +439,40 @@ export function HostMenu() {
                     <span className={cn("rs-sw", bundle.room.allow_member_options && "on")} aria-hidden />
                   </button>
                 ) : null}
+                <button
+                  type="button"
+                  className="rs-opt"
+                  role="switch"
+                  aria-checked={bundle.room.anonymous}
+                  onClick={() => void setAnonymous(!bundle.room.anonymous)}
+                >
+                  <span className="rs-oi"><Lock aria-hidden /></span>
+                  <span className="rs-grow">
+                    Vote ẩn danh
+                    <small>Không ai thấy ai chọn gì, kể cả chủ phòng</small>
+                  </span>
+                  <span className={cn("rs-sw", bundle.room.anonymous && "on")} aria-hidden />
+                </button>
+                <div className="rs-opt" style={{ display: "block" }}>
+                  <span className="rs-grow">
+                    Hiện kết quả
+                    <small className="block mt-2 space-y-1">
+                      {(["live", "after_vote", "after_close"] as const).map((v) => (
+                        <button
+                          key={v}
+                          type="button"
+                          className={cn(
+                            "mr-1 rounded-full px-2 py-1 text-xs font-bold",
+                            bundle.room.results_visibility === v ? "bg-primary text-white" : "bg-muted",
+                          )}
+                          onClick={() => void setResultsVisibility(v)}
+                        >
+                          {v === "live" ? "Ngay" : v === "after_vote" ? "Sau khi vote" : "Khi chốt"}
+                        </button>
+                      ))}
+                    </small>
+                  </span>
+                </div>
                 {inLobbyish && isKnockoutMode ? (
                   <button
                     type="button"

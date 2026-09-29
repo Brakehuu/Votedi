@@ -8,6 +8,7 @@ import { PlacesMapOverview } from "@/components/options/places-map-overview";
 import { OptionEditor, type OptionDraft } from "@/components/formats/quick/option-editor";
 import { Countdown } from "@/components/room/countdown";
 import { ImageLightbox } from "@/components/room/image-lightbox";
+import { ReactionBar } from "@/components/room/reaction-bar";
 import { useRoom } from "@/components/room/room-context";
 import { VoterStack } from "@/components/room/voter-stack";
 import { ZoomIcon } from "@/components/icons/zoom-icon";
@@ -20,7 +21,7 @@ import { toast } from "sonner";
 const format = FORMATS.quick;
 
 export function QuickVoteView() {
-  const { bundle, me, castVote, removeVote, clearMyVotes, closeIfDue, addOptions, updateOption } = useRoom();
+  const { bundle, me, castVote, removeVote, clearMyVotes, closeIfDue, addOptions, updateOption, toggleReaction } = useRoom();
   const { room } = bundle;
   const max = Math.max(1, room.settings.max_choices ?? 1);
   const closed = room.status === "closed";
@@ -362,10 +363,25 @@ export function QuickVoteView() {
                     </div>
                     <span className="ql-cnt">{row.votes} phiếu</span>
                   </div>
-                  {voters.length > 0 ? (
+                  {voters.length > 0 && !room.anonymous ? (
                     <div className="ql-voters">
                       <VoterStack members={voters} />
                     </div>
+                  ) : room.anonymous && row.votes > 0 ? (
+                    <p className="text-xs text-muted-foreground">{row.votes} người đã chọn</p>
+                  ) : null}
+                  {room.reactions_enabled ? (
+                    <ReactionBar
+                      counts={Object.fromEntries(
+                        ["❤️", "😍", "🔥", "😂", "👎"].map((e) => [
+                          e,
+                          bundle.reactions.filter((r) => r.item_id === item.id && r.emoji === e).length,
+                        ]),
+                      )}
+                      mine={new Set(bundle.reactions.filter((r) => r.item_id === item.id && r.member_id === me.id).map((r) => r.emoji))}
+                      anonymous={room.anonymous}
+                      onToggle={(emoji) => void toggleReaction(item.id, emoji)}
+                    />
                   ) : null}
                   {item.item_type === "place" && lat != null && lng != null ? (
                     <div className="ql-place-acts">

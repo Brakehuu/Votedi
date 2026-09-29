@@ -2,16 +2,66 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { RoomScreen } from "@/components/room/room-screen";
 import { SetupNotice } from "@/components/setup-notice";
+import { getFormat } from "@/lib/formats";
 import { fetchRoomBundle } from "@/lib/room-data";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
+import { createSecretClient } from "@/lib/supabase/secret";
 import type { Member, RoomPreview } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  robots: { index: false, follow: false },
+type OgPreview = {
+  name: string;
+  format: string;
+  item_count: number;
+  member_count: number;
+  has_password: boolean;
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const site = process.env.NEXT_PUBLIC_SITE_URL || "https://votedi.vn";
+  let title = "Vote giúp nhóm";
+  let description = "Bấm để vote, không cần tài khoản.";
+  const secret = createSecretClient();
+  if (secret) {
+    try {
+      const { data } = await secret.rpc("og_room_preview", { p_slug: slug });
+      const preview = data as OgPreview | null;
+      if (preview) {
+        title = `Vote giúp nhóm: ${preview.name}`;
+        const formatName = getFormat(preview.format).name;
+        description = `${formatName} · ${preview.item_count} lựa chọn · ${preview.member_count} người đã tham gia. Bấm để vote, không cần tài khoản.`;
+      }
+    } catch {
+      /* fallback */
+    }
+  }
+  const url = `${site.replace(/\/$/, "")}/p/${slug}`;
+  return {
+    title,
+    description,
+    robots: { index: false, follow: false },
+    openGraph: {
+      title,
+      description,
+      url,
+      type: "website",
+      siteName: "Vote Đi",
+      locale: "vi_VN",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
+  };
+}
 
 export default async function RoomPage({
   params,
