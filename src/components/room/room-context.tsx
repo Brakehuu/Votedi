@@ -37,6 +37,10 @@ type RoomContextValue = {
   setLocked: (locked: boolean) => Promise<void>;
   setPassword: (password: string | null) => Promise<boolean>;
   setMemberUpload: (allow: boolean) => Promise<void>;
+  setMemberOptions: (allow: boolean) => Promise<void>;
+  reopenRoom: () => Promise<void>;
+  addOptions: (payload: unknown[]) => Promise<boolean>;
+  removeOption: (itemId: string) => Promise<void>;
   extendDeadline: (minutes: 5 | 15) => Promise<void>;
   endRound: () => Promise<void>;
   castVote: (itemId: string) => Promise<void>;
@@ -152,6 +156,66 @@ export function RoomProvider({
     toast.success("Đã chốt kết quả");
     await refresh();
   }, [initial.room.id, refresh, supabase]);
+
+  const reopenRoom = useCallback(async () => {
+    const { error } = await supabase.rpc("reopen_room", { p_room_id: initial.room.id });
+    if (error) {
+      toast.error(reportError(error));
+      return;
+    }
+    toast.success("Đã mở lại vote");
+    await refresh();
+  }, [initial.room.id, refresh, supabase]);
+
+  const setMemberOptions = useCallback(
+    async (allow: boolean) => {
+      const { error } = await supabase.rpc("host_set_member_options", {
+        p_room_id: initial.room.id,
+        p_allow: allow,
+      });
+      if (error) {
+        toast.error(reportError(error));
+        return;
+      }
+      toast.success(allow ? "Thành viên được thêm lựa chọn" : "Chỉ chủ phòng thêm lựa chọn");
+      await refresh();
+    },
+    [initial.room.id, refresh, supabase],
+  );
+
+  const addOptions = useCallback(
+    async (payload: unknown[]) => {
+      const { error } = await supabase.rpc("add_options", {
+        p_room_id: initial.room.id,
+        p_options: payload,
+      });
+      if (error) {
+        toast.error(reportError(error));
+        return false;
+      }
+      toast.success("Đã thêm lựa chọn");
+      await refresh();
+      return true;
+    },
+    [initial.room.id, refresh, supabase],
+  );
+
+  const removeOption = useCallback(
+    async (itemId: string) => {
+      const { data, error } = await supabase.rpc("remove_option", { p_item_id: itemId });
+      if (error) {
+        toast.error(reportError(error));
+        return;
+      }
+      if (typeof data === "string" && data) {
+        const removed = await supabase.storage.from("items").remove([data]);
+        if (removed.error) console.error("[Vote Đi] storage remove", removed.error);
+      }
+      toast.success("Đã xoá lựa chọn");
+      await refresh();
+    },
+    [refresh, supabase],
+  );
 
   const isBracket = initial.room.format === "bracket";
   const settle = isBracket ? advance : closeIfDue;
@@ -558,6 +622,10 @@ export function RoomProvider({
       setLocked,
       setPassword,
       setMemberUpload,
+      setMemberOptions,
+      reopenRoom,
+      addOptions,
+      removeOption,
       extendDeadline,
       endRound,
       castVote,
@@ -568,6 +636,7 @@ export function RoomProvider({
       refresh,
     }),
     [
+      addOptions,
       advance,
       bundle,
       castVote,
@@ -583,11 +652,14 @@ export function RoomProvider({
       onlineIds,
       refresh,
       removeItem,
+      removeOption,
       removeVote,
       renameItem,
+      reopenRoom,
       setBracket,
       setLocked,
       setPassword,
+      setMemberOptions,
       setMemberUpload,
       setSeedingMode,
       shuffleBracket,

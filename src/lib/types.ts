@@ -9,6 +9,22 @@ export type ResultsVisibility = "live" | "after_vote" | "after_close";
 
 export type RoomSettings = {
   max_choices?: number;
+  tie_rule?: TieRule;
+};
+
+export type PlaceData = {
+  name?: string | null;
+  address?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+  maps_url?: string | null;
+};
+
+export type LinkData = {
+  url: string;
+  title?: string | null;
+  image_url?: string | null;
+  site_name?: string | null;
 };
 
 export type RoomResultRow = { item_id: string; score: number; votes: number };
@@ -82,13 +98,15 @@ export type Item = {
   room_id: string;
   uploader_member_id: string | null;
   item_type: ItemType;
-  /** Always set for image items. */
+  /** Always set for image items; optional preview for place/link. */
   image_url: string | null;
   is_transparent: boolean;
   title: string | null;
   description: string | null;
   emoji: string | null;
   price_text: string | null;
+  place: PlaceData | null;
+  link: LinkData | null;
   position: number | null;
   created_at: string;
 };

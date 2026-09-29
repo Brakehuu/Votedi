@@ -1,6 +1,6 @@
 "use client";
 
-import { AdvancedGroup, Choice, SettingsGroup, Stepper } from "@/components/create-room/fields";
+import { AdvancedGroup, Choice, SettingsGroup, Stepper, ToggleRow } from "@/components/create-room/fields";
 import { Input } from "@/components/ui/input";
 import type { TieRule } from "@/lib/types";
 
@@ -12,6 +12,7 @@ export type QuickSettingsValue = {
   /** datetime-local value, used when deadline = "custom". */
   customDeadline: string;
   tieRule: TieRule;
+  allowMemberOptions: boolean;
 };
 
 export const DEFAULT_QUICK_SETTINGS: QuickSettingsValue = {
@@ -19,6 +20,7 @@ export const DEFAULT_QUICK_SETTINGS: QuickSettingsValue = {
   deadline: "none",
   customDeadline: "",
   tieRule: "random",
+  allowMemberOptions: true,
 };
 
 const DEADLINES: { value: DeadlinePreset; label: string }[] = [
@@ -121,6 +123,12 @@ export function QuickSettingsFields({
             {value.maxChoices === 1 ? "Mỗi người chọn 1, đổi ý thoải mái." : `Mỗi người chọn được tới ${value.maxChoices} lựa chọn.`}
           </p>
         </div>
+        <ToggleRow
+          title="Cho thành viên thêm lựa chọn"
+          body="Mọi người trong phòng có thể dán thêm địa điểm / link / chữ."
+          checked={value.allowMemberOptions}
+          onChange={(next) => set("allowMemberOptions", next)}
+        />
       </SettingsGroup>
 
       <AdvancedGroup>

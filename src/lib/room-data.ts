@@ -21,7 +21,7 @@ const MEMBER_COLUMNS =
 const LEGACY_ITEM_COLUMNS =
   "id, room_id, uploader_member_id, image_url, is_transparent, title, created_at";
 
-const ITEM_COLUMNS = `${LEGACY_ITEM_COLUMNS}, item_type, description, emoji, price_text, position`;
+const ITEM_COLUMNS = `${LEGACY_ITEM_COLUMNS}, item_type, description, emoji, price_text, place, link, position`;
 
 type QueryError = { message: string; code?: string } | null;
 
@@ -56,6 +56,8 @@ async function selectItems(supabase: SupabaseClient, roomId: string) {
       description: item.description ?? null,
       emoji: item.emoji ?? null,
       price_text: item.price_text ?? null,
+      place: (item.place as Item["place"]) ?? null,
+      link: (item.link as Item["link"]) ?? null,
       position: item.position ?? null,
     }),
   );

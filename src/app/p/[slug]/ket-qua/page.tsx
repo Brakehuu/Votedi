@@ -69,7 +69,85 @@ export default async function ResultsPage({ params }: { params: Promise<{ slug: 
 
   const bundle = await fetchRoomBundle(supabase, preview.id);
   if (!bundle) return <SetupNotice detail="Không tải được dữ liệu phòng." />;
-  if (bundle.room.format !== "bracket") redirect(`/p/${slug}`);
+  if (bundle.room.format !== "bracket" && bundle.room.format !== "quick") redirect(`/p/${slug}`);
+
+  if (bundle.room.format === "quick") {
+    const { getFormat } = await import("@/lib/formats");
+    const { OptionCard, optionTitle } = await import("@/components/options/option-card");
+    const { directionsUrl } = await import("@/components/options/place-map");
+    const format = getFormat("quick");
+    const rows = format.computeResults?.(bundle.items, bundle.votes) ?? [];
+    const winnerId = bundle.room.result?.winner_item_id ?? bundle.room.champion_item_id;
+    const winner = rows.find((row) => row.item.id === winnerId)?.item ?? rows[0]?.item;
+    return (
+      <>
+        <main className="mx-auto w-full max-w-lg space-y-6 px-4 py-8 pb-24">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-primary">Kết quả · Bình chọn nhanh</p>
+              <h1 className="text-3xl font-extrabold tracking-tight">{bundle.room.name}</h1>
+            </div>
+            <ResultsActions slug={slug} roomName={bundle.room.name} />
+          </div>
+          {bundle.room.status !== "closed" ? (
+            <p className="glass rounded-[22px] p-4 text-sm text-muted-foreground">
+              Phòng chưa chốt.{" "}
+              <Link href={`/p/${slug}`} className="font-semibold text-primary">
+                Vào phòng để vote
+              </Link>
+            </p>
+          ) : null}
+          {winner ? (
+            <section className="glass space-y-3 rounded-[22px] p-4">
+              <p className="text-sm font-semibold text-primary">Lựa chọn thắng</p>
+              <OptionCard option={winner} badge="#1" selected showMap />
+              <p className="text-2xl font-extrabold">{optionTitle(winner)}</p>
+              {winner.item_type === "place" && winner.place?.lat != null && winner.place?.lng != null ? (
+                <a
+                  className="btn btn-primary inline-flex min-h-11"
+                  href={directionsUrl(winner.place.lat, winner.place.lng)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Chỉ đường
+                </a>
+              ) : null}
+              {winner.item_type === "link" && winner.link?.url ? (
+                <a
+                  className="btn btn-primary inline-flex min-h-11"
+                  href={winner.link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Mở link
+                </a>
+              ) : null}
+            </section>
+          ) : null}
+          <section className="space-y-2">
+            <h2 className="text-xl font-extrabold">Bảng xếp hạng</h2>
+            <ol className="space-y-2">
+              {rows.map((row, index) => (
+                <li key={row.item.id} className="glass flex items-center gap-3 rounded-[18px] p-3">
+                  <span className="grid size-9 place-items-center rounded-full bg-foreground text-sm font-extrabold text-background">
+                    {index + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold">{optionTitle(row.item)}</p>
+                    <p className="text-sm text-muted-foreground">{row.votes} phiếu</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
+          <Link href={`/p/${slug}`} className="btn btn-dark inline-flex min-h-11">
+            Quay lại phòng
+          </Link>
+        </main>
+        <SiteFooter />
+      </>
+    );
+  }
 
   const champion = bundle.items.find((item) => item.id === bundle.room.champion_item_id);
   const finalRound = roundCount(bundle.room.knockout_size);

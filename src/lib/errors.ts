@@ -30,8 +30,11 @@ const MESSAGES: Record<string, string> = {
   FORMAT_UNAVAILABLE: "Kiểu vote này sắp có. Chọn kiểu khác nhé.",
   ROOM_CLOSED: "Phòng đã chốt kết quả, không vote thêm được.",
   END_TIME_RANGE: "Hạn vote phải ở tương lai và tối đa 30 ngày.",
-  PGRST202: "Chưa có hàm trên Supabase (schema cache). Chạy migration mới nhất (0008_formats_foundation.sql) rồi thử lại.",
-  PGRST204: "Thiếu cột trên bảng. Chạy lần lượt các migration 0002 → 0008.",
+  RATE_LIMIT: "Bạn thao tác quá nhanh. Đợi một phút rồi thử lại.",
+  PRIVATE_IP: "Link không an toàn (địa chỉ nội bộ).",
+  NOT_MAPS: "Đây không phải link Google Maps.",
+  PGRST202: "Chưa có hàm trên Supabase (schema cache). Chạy migration mới nhất rồi thử lại.",
+  PGRST204: "Thiếu cột trên bảng. Chạy lần lượt các migration còn thiếu.",
 };
 
 type ErrorLike = {

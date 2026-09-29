@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Flag, ImagePlus, KeyRound, Link2, Lock, Pencil, Settings, Shuffle, Timer, Wand2, X } from "lucide-react";
+import { Flag, ImagePlus, KeyRound, Link2, Lock, ListPlus, Pencil, RotateCcw, Settings, Shuffle, Timer, Wand2, X } from "lucide-react";
 import { toast } from "sonner";
 import { MemberAvatar } from "@/components/room/member-avatar";
 import { useRoom } from "@/components/room/room-context";
@@ -29,8 +29,10 @@ export function HostMenu() {
     setLocked,
     setPassword,
     setMemberUpload,
+    setMemberOptions,
     kickMember,
     closeRoom,
+    reopenRoom,
   } = useRoom();
   const mounted = useMounted();
   const [open, setOpen] = useState(false);
@@ -215,6 +217,8 @@ export function HostMenu() {
 
   const canControlRound = status === "qualify" || status === "knockout";
   const canCloseQuick = bundle.room.format !== "bracket" && status === "open";
+  const canReopenQuick = bundle.room.format !== "bracket" && status === "closed";
+  const isQuickish = bundle.room.format !== "bracket";
   const narrow = status === "qualify";
 
   function askCloseQuick() {
@@ -224,6 +228,18 @@ export function HostMenu() {
       ok: "Chốt kết quả",
       run: async () => {
         await closeRoom();
+        setOpen(false);
+      },
+    });
+  }
+
+  function askReopenQuick() {
+    setConfirm({
+      title: "Mở lại vote?",
+      body: "Kết quả chốt sẽ xoá, mọi người vote tiếp được.",
+      ok: "Mở lại",
+      run: async () => {
+        await reopenRoom();
         setOpen(false);
       },
     });
@@ -290,6 +306,21 @@ export function HostMenu() {
                     <span className="rs-grow">
                       Chốt kết quả
                       <small>Khóa vote và công bố lựa chọn thắng</small>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
+            {canReopenQuick ? (
+              <div className="rs-grp">
+                <h3>Điều khiển vote</h3>
+                <div className="rs-list">
+                  <button type="button" className="rs-opt" onClick={askReopenQuick}>
+                    <span className="rs-oi"><RotateCcw aria-hidden /></span>
+                    <span className="rs-grow">
+                      Mở lại vote
+                      <small>Xoá kết quả chốt, cho vote tiếp</small>
                     </span>
                   </button>
                 </div>
@@ -388,6 +419,22 @@ export function HostMenu() {
                       <small>Tắt thì chỉ chủ phòng tải ảnh</small>
                     </span>
                     <span className={cn("rs-sw", bundle.room.allow_member_upload && "on")} aria-hidden />
+                  </button>
+                ) : null}
+                {isQuickish && status === "open" ? (
+                  <button
+                    type="button"
+                    className="rs-opt"
+                    role="switch"
+                    aria-checked={bundle.room.allow_member_options}
+                    onClick={() => void setMemberOptions(!bundle.room.allow_member_options)}
+                  >
+                    <span className="rs-oi"><ListPlus aria-hidden /></span>
+                    <span className="rs-grow">
+                      Thành viên được thêm lựa chọn
+                      <small>Tắt thì chỉ chủ phòng thêm</small>
+                    </span>
+                    <span className={cn("rs-sw", bundle.room.allow_member_options && "on")} aria-hidden />
                   </button>
                 ) : null}
                 {inLobbyish && isKnockoutMode ? (

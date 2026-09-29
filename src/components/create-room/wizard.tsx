@@ -105,7 +105,8 @@ export function CreateRoomWizard({
       if (name.trim().length < 1) return "Nhập tên phòng.";
       if (def.id === "quick") {
         if (options.length < def.minOptions) return `Cần ít nhất ${def.minOptions} lựa chọn.`;
-        if (options.some((row) => row.type === "text" && !row.title.trim())) return "Có lựa chọn chưa có tên.";
+        if (options.some((row) => !row.title.trim())) return "Có lựa chọn chưa có tên.";
+        if (options.some((row) => row.type === "link" && !row.link?.url)) return "Có link chưa hợp lệ.";
       }
     }
     if (step === 2) {
@@ -138,7 +139,7 @@ export function CreateRoomWizard({
   async function saveOptions(roomId: string) {
     const supabase = createClient();
     const uploaded: string[] = [];
-    const images = options.filter((row) => row.type === "image").length;
+    const images = options.filter((row) => row.type === "image" || row.imageBlob).length;
     let done = 0;
     try {
       const payload = [];
@@ -150,7 +151,52 @@ export function CreateRoomWizard({
           const path = `${roomId}/${crypto.randomUUID()}.webp`;
           const url = await uploadPublicImage(path, prepared.blob, prepared.contentType);
           uploaded.push(path);
-          payload.push({ item_type: "image", title: row.title.trim(), image_url: url, is_transparent: prepared.transparent });
+          payload.push({
+            item_type: "image",
+            title: row.title.trim(),
+            image_url: url,
+            is_transparent: prepared.transparent,
+          });
+        } else if (row.type === "place") {
+          payload.push({
+            item_type: "place",
+            title: row.title.trim(),
+            description: row.description ?? null,
+            price_text: row.price_text ?? null,
+            place: {
+              name: row.place?.name ?? row.title.trim(),
+              address: row.place?.address ?? null,
+              lat: row.place?.lat ?? null,
+              lng: row.place?.lng ?? null,
+              maps_url: row.place?.maps_url ?? null,
+            },
+          });
+        } else if (row.type === "link" && row.link) {
+          let imageUrl: string | null = null;
+          if (row.imageBlob) {
+            done += 1;
+            setProgress(`Đang tải ảnh ${done}/${images}...`);
+            const ext = row.imageContentType?.includes("png")
+              ? "png"
+              : row.imageContentType?.includes("webp")
+                ? "webp"
+                : "jpg";
+            const path = `${roomId}/${crypto.randomUUID()}.${ext}`;
+            imageUrl = await uploadPublicImage(path, row.imageBlob, row.imageContentType ?? "image/jpeg");
+            uploaded.push(path);
+          }
+          payload.push({
+            item_type: "link",
+            title: row.title.trim(),
+            description: row.description ?? null,
+            price_text: row.price_text ?? null,
+            link: {
+              url: row.link.url,
+              title: row.title.trim(),
+              site_name: row.link.site_name ?? null,
+              image_url: imageUrl,
+            },
+          });
         } else {
           payload.push({ item_type: "text", title: row.title.trim(), emoji: row.emoji });
         }
@@ -190,7 +236,11 @@ export function CreateRoomWizard({
           p_settings:
             def.id === "bracket"
               ? bracketSettingsPayload(bracket)
-              : { max_choices: quick.maxChoices, tie_rule: quick.tieRule },
+              : {
+                  max_choices: quick.maxChoices,
+                  tie_rule: quick.tieRule,
+                  allow_member_options: quick.allowMemberOptions,
+                },
           p_deadline: def.id === "quick" ? quickDeadlineIso(quick, Date.now()) : null,
           ...identity,
         });
@@ -217,6 +267,12 @@ export function CreateRoomWizard({
         }
         setCreated(room);
         saveIdentity(displayName.trim(), file ? null : emoji);
+        if (def.id === "quick" && room.id && !quick.allowMemberOptions) {
+          await supabase.rpc("host_set_member_options", {
+            p_room_id: room.id,
+            p_allow: false,
+          });
+        }
       }
       if (def.id !== "bracket" && !optionsSaved && room.id) {
         await saveOptions(room.id);
