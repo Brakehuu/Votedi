@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Check, Clock3, ExternalLink, Map as MapIcon, Navigation, Plus } from "lucide-react";
-import { OptionCard, OptionMedia, optionTitle } from "@/components/options/option-card";
+import { OptionCard, OptionMedia, optionTitle, PlaceVoteCard } from "@/components/options/option-card";
 import { PlaceMapEmbed, directionsUrl } from "@/components/options/place-map";
 import { PlacesMapOverview } from "@/components/options/places-map-overview";
 import { OptionEditor, type OptionDraft } from "@/components/formats/quick/option-editor";
@@ -15,20 +15,24 @@ import { FORMATS } from "@/lib/formats";
 import { uploadPublicImage } from "@/lib/storage";
 import type { Member } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const format = FORMATS.quick;
 
 export function QuickVoteView() {
-  const { bundle, me, castVote, removeVote, clearMyVotes, closeIfDue, addOptions } = useRoom();
+  const { bundle, me, castVote, removeVote, clearMyVotes, closeIfDue, addOptions, updateOption } = useRoom();
   const { room } = bundle;
   const max = Math.max(1, room.settings.max_choices ?? 1);
   const closed = room.status === "closed";
+  const placeMode = room.settings.option_kind === "place";
   const canAdd = !closed && (me.is_host || room.allow_member_options);
   const [lbId, setLbId] = useState<string | null>(null);
+  const [tab, setTab] = useState<"vote" | "map">("vote");
   const [mapOpen, setMapOpen] = useState(false);
   const [adding, setAdding] = useState(false);
   const [drafts, setDrafts] = useState<OptionDraft[]>([]);
   const [saving, setSaving] = useState(false);
+  const [refetchingId, setRefetchingId] = useState<string | null>(null);
 
   const rows = useMemo(() => format.computeResults!(bundle.items, bundle.votes), [bundle.items, bundle.votes]);
   const memberById = useMemo(() => new Map(bundle.members.map((member) => [member.id, member])), [bundle.members]);
@@ -52,6 +56,45 @@ export function QuickVoteView() {
   );
   const ranks = useMemo(() => new Map(rows.map((row, index) => [row.item.id, index + 1])), [rows]);
   const left = Math.max(0, max - mine.size);
+
+  async function refetchPlace(itemId: string) {
+    const item = bundle.items.find((row) => row.id === itemId);
+    const mapsUrl = item?.place?.maps_url;
+    if (!mapsUrl || !me.is_host) return;
+    setRefetchingId(itemId);
+    try {
+      const res = await fetch("/api/places/resolve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: mapsUrl }),
+      });
+      const data = (await res.json()) as {
+        name?: string | null;
+        lat?: number | null;
+        lng?: number | null;
+        mapsUrl?: string;
+      };
+      const title =
+        data.name?.trim() ||
+        (item.title && item.title !== "Địa điểm chưa rõ tên" ? item.title : null) ||
+        "Địa điểm chưa rõ tên";
+      await updateOption(itemId, {
+        title,
+        place: {
+          ...(item.place ?? {}),
+          name: data.name ?? item.place?.name ?? null,
+          lat: data.lat ?? null,
+          lng: data.lng ?? null,
+          maps_url: data.mapsUrl ?? mapsUrl,
+        },
+      });
+      toast.success(data.lat != null ? "Đã cập nhật vị trí" : "Vẫn chưa lấy được toạ độ — giữ link Maps");
+    } catch {
+      toast.error("Không lấy lại được vị trí");
+    } finally {
+      setRefetchingId(null);
+    }
+  }
 
   function onPick(itemId: string) {
     if (closed) return;
@@ -80,12 +123,15 @@ export function QuickVoteView() {
             item_type: "place",
             title: row.title.trim(),
             price_text: row.price_text ?? null,
+            description: row.description ?? null,
             place: {
               name: row.place?.name ?? row.title.trim(),
               address: row.place?.address ?? null,
               lat: row.place?.lat ?? null,
               lng: row.place?.lng ?? null,
               maps_url: row.place?.maps_url ?? null,
+              booking_url: row.place?.booking_url ?? null,
+              note: row.place?.note ?? null,
             },
           });
         } else if (row.type === "link" && row.link) {
@@ -208,18 +254,66 @@ export function QuickVoteView() {
       </section>
 
       <div className="ql-tools">
-        <h2>{closed ? "Kết quả" : "Bảng xếp hạng"}</h2>
+        <h2>{closed ? "Kết quả" : placeMode ? "Địa điểm" : "Bảng xếp hạng"}</h2>
         <div className="flex flex-wrap items-center gap-2">
           {tiedLead && !closed ? <span className="ql-stage">Đang hòa</span> : null}
-          {placeCount >= 2 ? (
-            <button type="button" className="btn btn-dark min-h-10 gap-1.5 px-3 text-sm" onClick={() => setMapOpen(true)}>
-              <MapIcon aria-hidden size={15} />
-              Xem trên bản đồ
-            </button>
-          ) : null}
+          {(placeMode || placeCount >= 2) && (
+            <div className="ql-seg" role="tablist" aria-label="Chế độ xem">
+              <button type="button" role="tab" aria-selected={tab === "vote"} className={cn(tab === "vote" && "on")} onClick={() => setTab("vote")}>
+                Vote
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tab === "map"}
+                className={cn(tab === "map" && "on")}
+                onClick={() => {
+                  setTab("map");
+                  setMapOpen(true);
+                }}
+              >
+                <MapIcon aria-hidden size={14} />
+                Bản đồ
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
+      {placeMode && tab === "vote" ? (
+        <section className="place-grid" aria-live="polite">
+          {rows.map((row, index) => {
+            const selected = mine.has(row.item.id);
+            const voters = row.voterIds
+              .map((id) => memberById.get(id))
+              .filter((member): member is Member => Boolean(member));
+            return (
+              <PlaceVoteCard
+                key={row.item.id}
+                option={{ ...row.item, place: row.item.place }}
+                rank={index + 1}
+                selected={selected}
+                closed={closed}
+                onPick={() => onPick(row.item.id)}
+                onRefetch={me.is_host ? () => void refetchPlace(row.item.id) : undefined}
+                refetching={refetchingId === row.item.id}
+                voters={
+                  voters.length > 0 ? (
+                    <div className="ql-voters mt-2">
+                      <VoterStack members={voters} />
+                      <span className="text-xs text-muted-foreground">{row.votes} phiếu</span>
+                    </div>
+                  ) : (
+                    <p className="mt-1 text-xs text-muted-foreground">{row.votes} phiếu</p>
+                  )
+                }
+              />
+            );
+          })}
+        </section>
+      ) : null}
+
+      {(!placeMode || tab !== "vote") && tab === "vote" ? (
       <section className="ql-board glass" aria-live="polite">
         {rows.length === 0 ? (
           <p className="p-6 text-center text-sm text-muted-foreground">Phòng chưa có lựa chọn nào.</p>
@@ -311,13 +405,14 @@ export function QuickVoteView() {
           })
         )}
       </section>
+      ) : null}
 
       {canAdd ? (
         <section className="glass mt-3 rounded-[22px] p-4">
           {adding ? (
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-2">
-                <h3 className="font-bold">Thêm lựa chọn</h3>
+                <h3 className="font-bold">{placeMode ? "Thêm địa điểm" : "Thêm lựa chọn"}</h3>
                 <button
                   type="button"
                   className="text-sm font-semibold text-muted-foreground"
@@ -329,7 +424,12 @@ export function QuickVoteView() {
                   Huỷ
                 </button>
               </div>
-              <OptionEditor value={drafts} max={Math.max(0, format.maxOptions - bundle.items.length)} onChange={setDrafts} />
+              <OptionEditor
+                value={drafts}
+                max={Math.max(0, format.maxOptions - bundle.items.length)}
+                onChange={setDrafts}
+                placeMode={placeMode}
+              />
               <button
                 type="button"
                 className="btn btn-primary min-h-11 w-full"
@@ -390,7 +490,15 @@ export function QuickVoteView() {
         selectedIds={mine}
       />
 
-      <PlacesMapOverview items={bundle.items} ranks={ranks} open={mapOpen} onClose={() => setMapOpen(false)} />
+      <PlacesMapOverview
+        items={bundle.items}
+        ranks={ranks}
+        open={mapOpen || tab === "map"}
+        onClose={() => {
+          setMapOpen(false);
+          setTab("vote");
+        }}
+      />
     </div>
   );
 }

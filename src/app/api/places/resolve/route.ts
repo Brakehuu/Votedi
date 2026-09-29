@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { isMapsUrlString } from "@/lib/places/classify-line";
 import { resolveMapsUrl } from "@/lib/places/resolve-maps";
 import { createClient } from "@/lib/supabase/server";
 
@@ -29,18 +30,36 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "INVALID" }, { status: 400 });
   }
 
+  const raw = parsed.data.url;
+  if (!isMapsUrlString(raw)) {
+    return NextResponse.json({ error: "NOT_MAPS" }, { status: 400 });
+  }
+
   try {
-    const place = await resolveMapsUrl(parsed.data.url);
+    const place = await resolveMapsUrl(raw);
+    // Soft-success: always return a place payload so the client can create a place card.
     return NextResponse.json({
       name: place.name,
       lat: place.lat,
       lng: place.lng,
-      mapsUrl: place.mapsUrl,
+      mapsUrl: place.mapsUrl || raw,
       hint: place.hint ?? null,
+      incomplete: !place.name || place.lat == null || place.lng == null,
     });
   } catch (error) {
+    console.error("[api/places/resolve]", raw.slice(0, 120), error);
+    // Still soft-fail for known Maps URLs so UI can create an editable place card
+    if (isMapsUrlString(raw)) {
+      return NextResponse.json({
+        name: null,
+        lat: null,
+        lng: null,
+        mapsUrl: raw,
+        hint: error instanceof Error ? error.message : "RESOLVE_FAILED",
+        incomplete: true,
+      });
+    }
     const code = error instanceof Error ? error.message : "INVALID";
-    const status = code === "NOT_MAPS" || code === "INVALID_URL" ? 400 : 502;
-    return NextResponse.json({ error: code }, { status });
+    return NextResponse.json({ error: code }, { status: 400 });
   }
 }

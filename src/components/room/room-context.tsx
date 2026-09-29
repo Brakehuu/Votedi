@@ -41,6 +41,7 @@ type RoomContextValue = {
   reopenRoom: () => Promise<void>;
   addOptions: (payload: unknown[]) => Promise<boolean>;
   removeOption: (itemId: string) => Promise<void>;
+  updateOption: (itemId: string, patch: Record<string, unknown>) => Promise<boolean>;
   extendDeadline: (minutes: 5 | 15) => Promise<void>;
   endRound: () => Promise<void>;
   castVote: (itemId: string) => Promise<void>;
@@ -213,6 +214,19 @@ export function RoomProvider({
       }
       toast.success("Đã xoá lựa chọn");
       await refresh();
+    },
+    [refresh, supabase],
+  );
+
+  const updateOption = useCallback(
+    async (itemId: string, patch: Record<string, unknown>) => {
+      const { error } = await supabase.rpc("update_option", { p_item_id: itemId, p_patch: patch });
+      if (error) {
+        toast.error(reportError(error));
+        return false;
+      }
+      await refresh();
+      return true;
     },
     [refresh, supabase],
   );
@@ -626,6 +640,7 @@ export function RoomProvider({
       reopenRoom,
       addOptions,
       removeOption,
+      updateOption,
       extendDeadline,
       endRound,
       castVote,
@@ -653,6 +668,7 @@ export function RoomProvider({
       refresh,
       removeItem,
       removeOption,
+      updateOption,
       removeVote,
       renameItem,
       reopenRoom,

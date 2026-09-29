@@ -13,6 +13,7 @@ export type QuickSettingsValue = {
   customDeadline: string;
   tieRule: TieRule;
   allowMemberOptions: boolean;
+  optionKind: "place" | "any";
 };
 
 export const DEFAULT_QUICK_SETTINGS: QuickSettingsValue = {
@@ -21,6 +22,7 @@ export const DEFAULT_QUICK_SETTINGS: QuickSettingsValue = {
   customDeadline: "",
   tieRule: "random",
   allowMemberOptions: true,
+  optionKind: "any",
 };
 
 const DEADLINES: { value: DeadlinePreset; label: string }[] = [

@@ -1,4 +1,6 @@
-import { ExternalLink, MapPin, Navigation } from "lucide-react";
+"use client";
+
+import { ExternalLink, MapPin, Navigation, RefreshCw } from "lucide-react";
 import { ZoomIcon } from "@/components/icons/zoom-icon";
 import { PlaceMapEmbed, directionsUrl } from "@/components/options/place-map";
 import type { Item, LinkData, PlaceData } from "@/lib/types";
@@ -18,7 +20,6 @@ export function optionTitle(option: Pick<Item, "title" | "place" | "link">) {
   );
 }
 
-/** Square visual for an option. */
 export function OptionMedia({
   option,
   className,
@@ -59,26 +60,106 @@ export function OptionMedia({
   );
 }
 
-function PlaceActions({ place, title }: { place: PlaceData; title: string }) {
+export function PlaceActionRow({
+  place,
+  price,
+  onRefetch,
+  refetching,
+}: {
+  place: PlaceData;
+  price?: string | null;
+  onRefetch?: () => void;
+  refetching?: boolean;
+}) {
   const lat = place.lat;
   const lng = place.lng;
-  const maps = place.maps_url;
   return (
-    <div className="opt-actions">
+    <div className="place-acts">
       {lat != null && lng != null ? (
-        <a className="opt-act" href={directionsUrl(lat, lng)} target="_blank" rel="noopener noreferrer">
-          <Navigation aria-hidden size={14} />
+        <a className="place-act" href={directionsUrl(lat, lng)} target="_blank" rel="noopener noreferrer">
+          <Navigation aria-hidden size={13} />
           Chỉ đường
         </a>
       ) : null}
-      {maps ? (
-        <a className="opt-act" href={maps} target="_blank" rel="noopener noreferrer">
-          <ExternalLink aria-hidden size={14} />
-          Mở Google Maps
+      {place.maps_url ? (
+        <a className="place-act" href={place.maps_url} target="_blank" rel="noopener noreferrer">
+          <ExternalLink aria-hidden size={13} />
+          Mở Maps
         </a>
       ) : null}
-      {lat != null && lng != null ? <PlaceMapEmbed lat={lat} lng={lng} title={title} /> : null}
+      {place.booking_url ? (
+        <a className="place-act" href={place.booking_url} target="_blank" rel="noopener noreferrer">
+          <ExternalLink aria-hidden size={13} />
+          Đặt phòng
+        </a>
+      ) : null}
+      {onRefetch && (lat == null || lng == null) ? (
+        <button type="button" className="place-act" disabled={refetching} onClick={onRefetch}>
+          <RefreshCw aria-hidden size={13} className={refetching ? "animate-spin" : undefined} />
+          Lấy lại vị trí
+        </button>
+      ) : null}
+      {price ? <span className="place-price-chip">{price}</span> : null}
     </div>
+  );
+}
+
+/** Map-first place card for vote-địa-điểm mode. */
+export function PlaceVoteCard({
+  option,
+  rank,
+  selected,
+  closed,
+  voters,
+  onPick,
+  onRefetch,
+  refetching,
+  children,
+}: {
+  option: OptionLike & { place: PlaceData | null };
+  rank: number;
+  selected?: boolean;
+  closed?: boolean;
+  voters?: React.ReactNode;
+  onPick?: () => void;
+  onRefetch?: () => void;
+  refetching?: boolean;
+  children?: React.ReactNode;
+}) {
+  const title = optionTitle(option);
+  const place = option.place;
+  const lat = place?.lat;
+  const lng = place?.lng;
+  return (
+    <article className={cn("place-card", selected && "on")}>
+      <div className="place-card-map">
+        {lat != null && lng != null ? (
+          <PlaceMapEmbed lat={lat} lng={lng} title={title} className="place-map place-map-card" />
+        ) : (
+          <div className="place-map-ph place-map-card grid place-items-center text-sm font-semibold text-muted-foreground">
+            Chưa có toạ độ
+          </div>
+        )}
+        <span className="place-card-rank">{rank}</span>
+      </div>
+      <div className="place-card-body">
+        <b>{title}</b>
+        {place?.address ? <p>{place.address}</p> : option.description ? <p>{option.description}</p> : null}
+        {option.price_text ? <span className="place-price-chip">{option.price_text}</span> : null}
+        {voters}
+        {place ? (
+          <PlaceActionRow place={place} onRefetch={onRefetch} refetching={refetching} />
+        ) : null}
+        <div className="place-card-foot">
+          {!closed && onPick ? (
+            <button type="button" className={cn("ql-pick", selected && "on")} onClick={onPick} aria-pressed={selected}>
+              {selected ? "Đã chọn" : "Chọn"}
+            </button>
+          ) : null}
+          {children}
+        </div>
+      </div>
+    </article>
   );
 }
 
@@ -93,7 +174,6 @@ function LinkActions({ link }: { link: LinkData }) {
   );
 }
 
-/** Tile card rendered by item_type. */
 export function OptionCard({
   option,
   selected,
@@ -113,6 +193,32 @@ export function OptionCard({
 }) {
   const title = optionTitle(option);
   const zoomable = Boolean(onZoom && option.item_type === "image" && option.image_url);
+
+  if (option.item_type === "place" && showMap !== false) {
+    const place = option.place;
+    const lat = place?.lat;
+    const lng = place?.lng;
+    return (
+      <article className={cn("place-card", selected && "on", className)}>
+        <div className="place-card-map">
+          {lat != null && lng != null ? (
+            <PlaceMapEmbed lat={lat} lng={lng} title={title} className="place-map place-map-card" />
+          ) : (
+            <div className="place-map-ph place-map-card" />
+          )}
+          {badge ? <span className="place-card-rank">{badge}</span> : null}
+        </div>
+        <div className="place-card-body">
+          <b title={title}>{title}</b>
+          {place?.address ? <p>{place.address}</p> : null}
+          {option.price_text ? <span className="place-price-chip">{option.price_text}</span> : null}
+          {place ? <PlaceActionRow place={place} /> : null}
+        </div>
+        {children}
+      </article>
+    );
+  }
+
   return (
     <article className={cn("opt-card", selected && "on", className)}>
       <div className="opt-card-media">
@@ -130,16 +236,9 @@ export function OptionCard({
       </div>
       <div className="opt-card-body">
         <b title={title}>{title}</b>
-        {option.place?.address ? <p>{option.place.address}</p> : null}
-        {option.description && option.item_type !== "place" ? <p>{option.description}</p> : null}
-        {option.description && option.item_type === "place" && !option.place?.address ? (
-          <p>{option.description}</p>
-        ) : null}
+        {option.description ? <p>{option.description}</p> : null}
         {option.link?.site_name ? <p className="opt-site">{option.link.site_name}</p> : null}
         {option.price_text ? <span className="opt-price">{option.price_text}</span> : null}
-        {showMap !== false && option.item_type === "place" && option.place ? (
-          <PlaceActions place={option.place} title={title} />
-        ) : null}
         {option.item_type === "link" && option.link ? <LinkActions link={option.link} /> : null}
       </div>
       {children}

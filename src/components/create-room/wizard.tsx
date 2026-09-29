@@ -30,6 +30,7 @@ import { FORMATS, FORMAT_LIST } from "@/lib/formats";
 import { prepareItemImage } from "@/lib/images";
 import { ensureUser, uploadPublicImage } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/client";
+import { PLACE_TEMPLATES, type RoomTemplate } from "@/lib/templates";
 import type { FormatId, RoomMode } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -91,11 +92,28 @@ export function CreateRoomWizard({
   const [progress, setProgress] = useState<string | null>(null);
   const [created, setCreated] = useState<CreatedRoom | null>(null);
   const [optionsSaved, setOptionsSaved] = useState(false);
+  const [template, setTemplate] = useState<RoomTemplate | null>(null);
 
   const def = format ? FORMATS[format] : null;
+  const placeMode = quick.optionKind === "place" || template?.optionKind === "place";
 
   function pickFormat(id: FormatId) {
+    setTemplate(null);
     setFormat(id);
+    if (id === "quick") setQuick({ ...DEFAULT_QUICK_SETTINGS, optionKind: "any" });
+    setStep(1);
+  }
+
+  function pickTemplate(item: RoomTemplate) {
+    setTemplate(item);
+    setFormat(item.format as FormatId);
+    setName(item.h1);
+    setQuick({
+      ...DEFAULT_QUICK_SETTINGS,
+      maxChoices: item.defaultSettings.max_choices ?? 1,
+      optionKind: "place",
+    });
+    setOptions([]);
     setStep(1);
   }
 
@@ -105,7 +123,10 @@ export function CreateRoomWizard({
       if (name.trim().length < 1) return "Nhập tên phòng.";
       if (def.id === "quick") {
         if (options.length < def.minOptions) return `Cần ít nhất ${def.minOptions} lựa chọn.`;
-        if (options.some((row) => !row.title.trim())) return "Có lựa chọn chưa có tên.";
+        if (options.some((row) => row.resolving)) return "Đang lấy vị trí, đợi một chút…";
+        if (options.some((row) => !row.title.trim() || row.title === "Đang lấy vị trí…"))
+          return "Có lựa chọn chưa có tên.";
+        if (placeMode && options.some((row) => row.type !== "place")) return "Chế độ địa điểm chỉ nhận link Maps.";
         if (options.some((row) => row.type === "link" && !row.link?.url)) return "Có link chưa hợp lệ.";
       }
     }
@@ -169,6 +190,8 @@ export function CreateRoomWizard({
               lat: row.place?.lat ?? null,
               lng: row.place?.lng ?? null,
               maps_url: row.place?.maps_url ?? null,
+              booking_url: row.place?.booking_url ?? null,
+              note: row.place?.note ?? null,
             },
           });
         } else if (row.type === "link" && row.link) {
@@ -240,8 +263,10 @@ export function CreateRoomWizard({
                   max_choices: quick.maxChoices,
                   tie_rule: quick.tieRule,
                   allow_member_options: quick.allowMemberOptions,
+                  option_kind: placeMode ? "place" : "any",
                 },
           p_deadline: def.id === "quick" ? quickDeadlineIso(quick, Date.now()) : null,
+          p_template_slug: template?.slug ?? null,
           ...identity,
         });
         if (error && def.id === "bracket" && missingRpc(error)) {
@@ -301,30 +326,56 @@ export function CreateRoomWizard({
       </div>
 
       {step === 0 ? (
-        <section className="space-y-4">
+        <section className="space-y-6">
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight">Bạn muốn chốt gì?</h1>
-            <p className="mt-1 text-muted-foreground">Chọn kiểu vote hợp với câu hỏi của nhóm.</p>
+            <p className="mt-1 text-muted-foreground">Chọn mẫu có sẵn hoặc kiểu vote.</p>
           </div>
-          <div className="fmt-grid">
-            {WIZARD_FORMATS.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className={cn("fmt-card glass", format === item.id && "on")}
-                aria-pressed={format === item.id}
-                onClick={() => pickFormat(item.id)}
-              >
-                <span className="fmt-ic">
-                  <item.icon aria-hidden />
-                </span>
-                <span className="min-w-0">
-                  <b>{item.name}</b>
-                  <span className="d">{item.description}</span>
-                  <span className="u">Dùng cho: {item.useFor}</span>
-                </span>
-              </button>
-            ))}
+
+          <div className="space-y-3">
+            <h2 className="text-sm font-extrabold tracking-wide text-primary uppercase">Chọn địa điểm</h2>
+            <div className="fmt-grid">
+              {PLACE_TEMPLATES.map((item) => (
+                <button
+                  key={item.slug}
+                  type="button"
+                  className="fmt-card glass"
+                  onClick={() => pickTemplate(item)}
+                >
+                  <span className="fmt-ic text-2xl" aria-hidden>
+                    {item.emoji}
+                  </span>
+                  <span className="min-w-0">
+                    <b>{item.title}</b>
+                    <span className="d">{item.intro}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <h2 className="text-sm font-extrabold tracking-wide text-muted-foreground uppercase">Kiểu vote khác</h2>
+            <div className="fmt-grid">
+              {WIZARD_FORMATS.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={cn("fmt-card glass", format === item.id && !template && "on")}
+                  aria-pressed={format === item.id && !template}
+                  onClick={() => pickFormat(item.id)}
+                >
+                  <span className="fmt-ic">
+                    <item.icon aria-hidden />
+                  </span>
+                  <span className="min-w-0">
+                    <b>{item.name}</b>
+                    <span className="d">{item.description}</span>
+                    <span className="u">Dùng cho: {item.useFor}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
         </section>
       ) : null}
@@ -332,7 +383,9 @@ export function CreateRoomWizard({
       {step === 1 && def ? (
         <section className="space-y-5">
           <div>
-            <p className="text-sm font-semibold text-primary">{def.name}</p>
+            <p className="text-sm font-semibold text-primary">
+              {template ? `${template.emoji} ${template.title}` : def.name}
+            </p>
             <h1 className="text-3xl font-extrabold tracking-tight">Nội dung</h1>
           </div>
           <label className="block space-y-2">
@@ -341,7 +394,7 @@ export function CreateRoomWizard({
               value={name}
               maxLength={80}
               onChange={(event) => setName(event.target.value)}
-              placeholder={NAME_PLACEHOLDER[def.id] ?? "Tên phòng"}
+              placeholder={template?.h1 ?? NAME_PLACEHOLDER[def.id] ?? "Tên phòng"}
             />
           </label>
           <label className="block space-y-2">
@@ -359,8 +412,13 @@ export function CreateRoomWizard({
           </label>
           {def.id === "quick" ? (
             <div className="space-y-2">
-              <span className="text-sm font-semibold">Các lựa chọn</span>
-              <OptionEditor value={options} max={def.maxOptions} onChange={setOptions} />
+              <span className="text-sm font-semibold">{placeMode ? "Địa điểm" : "Các lựa chọn"}</span>
+              <OptionEditor
+                value={options}
+                max={def.maxOptions}
+                onChange={setOptions}
+                placeMode={placeMode}
+              />
             </div>
           ) : (
             <p className="rounded-[22px] bg-primary-soft p-4 text-sm">

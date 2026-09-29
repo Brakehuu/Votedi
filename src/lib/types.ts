@@ -10,6 +10,9 @@ export type ResultsVisibility = "live" | "after_vote" | "after_close";
 export type RoomSettings = {
   max_choices?: number;
   tie_rule?: TieRule;
+  /** Restrict option UI: 'place' = vote địa điểm mode. */
+  option_kind?: "place" | "any";
+  template_slug?: string;
 };
 
 export type PlaceData = {
@@ -18,6 +21,9 @@ export type PlaceData = {
   lat?: number | null;
   lng?: number | null;
   maps_url?: string | null;
+  /** Optional booking / listing URL (Booking, Agoda, Airbnb…). */
+  booking_url?: string | null;
+  note?: string | null;
 };
 
 export type LinkData = {
