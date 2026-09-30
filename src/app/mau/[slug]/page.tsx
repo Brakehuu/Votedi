@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { SiteFooter } from "@/components/home/footer";
 import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { TemplateDemo } from "@/components/seo/template-demo";
+import { TemplateIcon } from "@/components/seo/template-icon";
 import { getFormat } from "@/lib/formats";
 import { breadcrumbList, faqPage, jsonLd } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/site";
@@ -42,7 +43,7 @@ export default async function MauDetailPage({ params }: { params: Promise<{ slug
   const related = t.relatedSlugs.map((s) => getTemplate(s)).filter(Boolean);
 
   return (
-    <>
+    <div>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={jsonLd([
@@ -64,7 +65,7 @@ export default async function MauDetailPage({ params }: { params: Promise<{ slug
           { "@context": "https://schema.org", ...faqPage(t.faq) },
         ])}
       />
-      <main className="mx-auto w-full max-w-2xl px-4 py-10 pb-24">
+      <main className="blog-wrap" style={{ maxWidth: 760 }}>
         <Breadcrumbs
           items={[
             { label: "Trang chủ", href: "/" },
@@ -72,9 +73,7 @@ export default async function MauDetailPage({ params }: { params: Promise<{ slug
             { label: t.title },
           ]}
         />
-        <p className="text-4xl" aria-hidden>
-          {t.emoji}
-        </p>
+        <TemplateIcon template={t} className="tpl-ic-lg" />
         <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">{t.h1}</h1>
         <p className="mt-3 text-muted-foreground">{t.intro}</p>
         <p className="mt-2 text-sm">
@@ -138,7 +137,7 @@ export default async function MauDetailPage({ params }: { params: Promise<{ slug
             {related.map((r) =>
               r ? (
                 <Link key={r.slug} href={`/mau/${r.slug}`} className="glass rounded-[18px] p-4 text-center">
-                  <span className="text-2xl">{r.emoji}</span>
+                  <TemplateIcon template={r} className="mx-auto" />
                   <b className="mt-2 block text-sm font-bold">{r.title}</b>
                 </Link>
               ) : null,
@@ -155,6 +154,6 @@ export default async function MauDetailPage({ params }: { params: Promise<{ slug
         </section>
       </main>
       <SiteFooter />
-    </>
+    </div>
   );
 }

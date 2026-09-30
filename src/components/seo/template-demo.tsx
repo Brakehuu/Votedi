@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getFormat } from "@/lib/formats";
+import { TemplateIcon } from "@/components/seo/template-icon";
 import type { RoomTemplate } from "@/lib/templates";
 
 /** Static (no client libs) preview of a template's suggested options. */
@@ -26,9 +27,7 @@ export function TemplateDemo({ template }: { template: RoomTemplate }) {
             key={`${label}-${i}`}
             className="flex items-center gap-3 rounded-2xl border border-[var(--line)] bg-white/80 px-3 py-3 dark:bg-white/5"
           >
-            <span className="grid size-9 place-items-center rounded-xl bg-muted text-lg" aria-hidden>
-              {template.emoji}
-            </span>
+            <TemplateIcon template={template} className="tpl-ic-sm" />
             <span className="min-w-0 flex-1 truncate font-semibold">{label}</span>
             <span className="size-5 rounded-full border-2 border-[var(--line)]" aria-hidden />
           </li>

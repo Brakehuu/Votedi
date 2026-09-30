@@ -30,6 +30,7 @@ import { WizardStepFormats } from "@/components/create-room/wizard-step-formats"
 import { buildSlotDrafts } from "@/lib/schedule";
 import { AvatarPicker } from "@/components/room/avatar-picker";
 import { SharePanel } from "@/components/share-panel";
+import { TemplateIcon } from "@/components/seo/template-icon";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -448,8 +449,15 @@ export function CreateRoomWizard({
       {step === 1 && def ? (
         <section className="space-y-5">
           <div>
-            <p className="text-sm font-semibold text-primary">
-              {template ? `${template.emoji} ${template.title}` : def.name}
+            <p className="text-sm font-semibold text-primary inline-flex items-center gap-2">
+              {template ? (
+                <>
+                  <TemplateIcon template={template} className="tpl-ic-sm" />
+                  {template.title}
+                </>
+              ) : (
+                def.name
+              )}
             </p>
             <h1 className="text-3xl font-extrabold tracking-tight">Nội dung</h1>
           </div>

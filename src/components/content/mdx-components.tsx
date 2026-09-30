@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getTemplate } from "@/lib/templates";
+import { TemplateIcon } from "@/components/seo/template-icon";
 import type { AssetMeta } from "@/lib/content";
 import { slugifyHeading } from "@/lib/content";
 import { Callout, MdxFigure, SummaryBox } from "@/components/content/article-chrome";
@@ -11,7 +12,7 @@ export function TemplateCta({ slug }: { slug: string }) {
   return (
     <aside className="blog-tcta">
       <span className="blog-tcta-ic" aria-hidden>
-        {t.emoji}
+        <TemplateIcon template={t} className="tpl-ic-on-grad" />
       </span>
       <div>
         <b>Mẫu: {t.title}</b>

@@ -2,16 +2,17 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { CategoryFilter } from "@/components/seo/category-filter";
+import { TemplateIcon } from "@/components/seo/template-icon";
 import {
-  TEMPLATE_TABS,
   TEMPLATES,
   searchTemplates,
+  templateTabCounts,
   templatesForTab,
   type RoomTemplate,
   type TemplateTabId,
 } from "@/lib/templates";
 import { FORMAT_LIST } from "@/lib/formats";
-import { cn } from "@/lib/utils";
 
 function TemplateCard({
   item,
@@ -23,9 +24,7 @@ function TemplateCard({
   const format = FORMAT_LIST.find((f) => f.id === item.format);
   return (
     <button type="button" className="fmt-card glass text-left" onClick={() => onPick(item)}>
-      <span className="fmt-ic text-2xl" aria-hidden>
-        {item.emoji}
-      </span>
+      <TemplateIcon template={item} />
       <span className="min-w-0">
         <b>{item.title}</b>
         <span className="d">{item.intro}</span>
@@ -42,9 +41,10 @@ export function WizardStepFormats({
   onPickTemplate: (item: RoomTemplate) => void;
   onPickFormat: (id: string) => void;
 }) {
-  const [tab, setTab] = useState<TemplateTabId | "all">("place");
+  const [tab, setTab] = useState<TemplateTabId | "all">("all");
   const [q, setQ] = useState("");
   const formats = FORMAT_LIST.filter((f) => f.available);
+  const counts = useMemo(() => templateTabCounts(), []);
 
   const list = useMemo(() => {
     if (q.trim()) return searchTemplates(q);
@@ -70,25 +70,7 @@ export function WizardStepFormats({
       </label>
 
       {!q.trim() ? (
-        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1" role="tablist" aria-label="Danh mục mẫu">
-          {TEMPLATE_TABS.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              role="tab"
-              aria-selected={tab === t.id}
-              className={cn(
-                "shrink-0 rounded-full border px-3.5 py-2 text-sm font-semibold",
-                tab === t.id
-                  ? "border-primary bg-primary-soft text-primary"
-                  : "border-[var(--line)] bg-white text-muted-foreground",
-              )}
-              onClick={() => setTab(t.id)}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+        <CategoryFilter variant="buttons" value={tab} counts={counts} onSelect={setTab} />
       ) : null}
 
       <div className="fmt-grid">
@@ -109,7 +91,7 @@ export function WizardStepFormats({
               onClick={() => onPickFormat(item.id)}
             >
               <span className="fmt-ic">
-                <item.icon aria-hidden />
+                <item.icon aria-hidden strokeWidth={1.9} />
               </span>
               <span className="min-w-0">
                 <b>{item.name}</b>

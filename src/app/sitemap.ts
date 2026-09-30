@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { allTopicCounts, listContent, paginate } from "@/lib/content";
 import { FORMAT_LIST } from "@/lib/formats";
 import { absoluteUrl } from "@/lib/site";
-import { TEMPLATES } from "@/lib/templates";
+import { TEMPLATE_TABS, TEMPLATES } from "@/lib/templates";
 import { statSync } from "node:fs";
 
 function fileDate(filePath: string | undefined) {
@@ -37,6 +37,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
   for (const t of TEMPLATES) {
     entries.push({
       url: absoluteUrl(`/mau/${t.slug}`),
+      lastModified: now,
+    });
+  }
+
+  for (const tab of TEMPLATE_TABS) {
+    entries.push({
+      url: absoluteUrl(`/mau/danh-muc/${tab.id}`),
       lastModified: now,
     });
   }

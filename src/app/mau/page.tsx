@@ -19,8 +19,8 @@ export const metadata: Metadata = {
 
 export default function MauIndexPage() {
   return (
-    <>
-      <main className="mx-auto w-full max-w-3xl px-4 py-10 pb-24">
+    <div>
+      <main className="blog-wrap">
         <p className="text-sm font-semibold text-primary">Thư viện mẫu</p>
         <h1 className="mt-1 text-3xl font-extrabold tracking-tight sm:text-4xl">Mẫu phòng vote có sẵn</h1>
         <p className="mt-2 max-w-2xl text-muted-foreground">
@@ -35,6 +35,6 @@ export default function MauIndexPage() {
         </div>
       </main>
       <SiteFooter />
-    </>
+    </div>
   );
 }

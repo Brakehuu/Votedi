@@ -1,3 +1,32 @@
+import {
+  Baby,
+  BookOpen,
+  Briefcase,
+  CalendarDays,
+  Camera,
+  Clapperboard,
+  Clock,
+  Gift,
+  GraduationCap,
+  HardHat,
+  Heart,
+  Hexagon,
+  Hotel,
+  MapPin,
+  Medal,
+  Palmtree,
+  Salad,
+  School,
+  Shirt,
+  Tag,
+  Trophy,
+  Users,
+  UtensilsCrossed,
+  Wine,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
+
 export type TemplateCategory =
   | "place"
   | "travel"
@@ -1401,3 +1430,102 @@ export function searchTemplates(query: string): RoomTemplate[] {
 export function templatesByFormat(format: RoomTemplate["format"]): RoomTemplate[] {
   return TEMPLATES.filter((t) => t.format === format);
 }
+
+/** Màu nền nhạt + icon lucide theo danh mục (ảnh bìa tự sinh / thẻ mẫu). */
+export const CATEGORY_VISUAL: Record<TemplateCategory, { bg: string; fg: string; icon: LucideIcon }> = {
+  place: { bg: "#E3F6F5", fg: "#0B7F7A", icon: MapPin },
+  travel: { bg: "#FFF4E5", fg: "#C2410C", icon: Palmtree },
+  food: { bg: "#FFF1E8", fg: "#EA580C", icon: UtensilsCrossed },
+  fashion: { bg: "#FCE7F3", fg: "#BE185D", icon: Shirt },
+  school: { bg: "#DBEAFE", fg: "#1D4ED8", icon: GraduationCap },
+  work: { bg: "#E0F2FE", fg: "#0369A1", icon: Briefcase },
+  family: { bg: "#ECFDF3", fg: "#15803D", icon: Heart },
+  community: { bg: "#FDF2F8", fg: "#9D174D", icon: Trophy },
+};
+
+const TEMPLATE_ICONS: Record<string, LucideIcon> = {
+  "chon-mau-ao-nhom": Shirt,
+  "chon-mau-ao-lop": Shirt,
+  "chon-logo": Hexagon,
+  "chon-concept-ky-yeu": BookOpen,
+  "chon-dong-phuc-cong-ty": HardHat,
+  "di-dau-choi-cuoi-tuan": MapPin,
+  "chon-diem-du-lich": Palmtree,
+  "chon-ngay-di-du-lich": CalendarDays,
+  "chon-homestay-khach-san": Hotel,
+  "hom-nay-an-gi": UtensilsCrossed,
+  "quan-nhau-toi-nay": Wine,
+  "an-trua-van-phong": Salad,
+  "chon-ngay-hop-lop": School,
+  "chon-ngay-teambuilding": Users,
+  "lich-hop-team": Clock,
+  "dat-ten-con": Baby,
+  "dat-ten-team-thuong-hieu": Tag,
+  "chon-qua-sinh-nhat": Gift,
+  "chon-qua-tang-sep": Gift,
+  "chon-phim-toi-nay": Clapperboard,
+  "cuoc-thi-anh": Camera,
+  "chon-mon-an-ngon-nhat": Medal,
+  "chon-ao-dai-cuoi": Shirt,
+  "binh-chon-nhanh": Zap,
+};
+
+export function templateVisual(template: Pick<RoomTemplate, "slug" | "category">) {
+  const cat = CATEGORY_VISUAL[template.category];
+  return {
+    bg: cat.bg,
+    fg: cat.fg,
+    icon: TEMPLATE_ICONS[template.slug] ?? cat.icon,
+  };
+}
+
+export function isTemplateTabId(value: string): value is TemplateTabId {
+  return TEMPLATE_TABS.some((t) => t.id === value);
+}
+
+export function getTemplateTab(slug: string): (typeof TEMPLATE_TABS)[number] | null {
+  return TEMPLATE_TABS.find((t) => t.id === slug) ?? null;
+}
+
+export function templateTabCounts(): Record<TemplateTabId | "all", number> {
+  const counts = { all: TEMPLATES.length } as Record<TemplateTabId | "all", number>;
+  for (const tab of TEMPLATE_TABS) {
+    counts[tab.id] = templatesForTab(tab.id).length;
+  }
+  return counts;
+}
+
+export const TEMPLATE_TAB_SEO: Record<TemplateTabId, { title: string; description: string }> = {
+  place: {
+    title: "Mẫu chọn địa điểm",
+    description: "Mẫu Vote Đi để nhóm chốt quán, điểm chơi, homestay. Chọn mẫu rồi tạo phòng trong vài phút.",
+  },
+  travel: {
+    title: "Mẫu du lịch",
+    description: "Mẫu Vote Đi cho chuyến đi: điểm đến, ngày đi, chỗ ở. Chọn mẫu rồi tạo phòng trong vài phút.",
+  },
+  food: {
+    title: "Mẫu ăn uống",
+    description: "Mẫu Vote Đi cho hôm nay ăn gì, quán nhậu, ăn trưa. Chọn mẫu rồi tạo phòng trong vài phút.",
+  },
+  fashion: {
+    title: "Mẫu thời trang & thiết kế",
+    description: "Mẫu Vote Đi cho áo lớp, áo nhóm, logo, concept. Chọn mẫu rồi tạo phòng trong vài phút.",
+  },
+  school: {
+    title: "Mẫu lớp học & trường",
+    description: "Mẫu Vote Đi cho họp lớp, kỷ yếu, lịch lớp. Chọn mẫu rồi tạo phòng trong vài phút.",
+  },
+  work: {
+    title: "Mẫu công ty & team",
+    description: "Mẫu Vote Đi cho họp team, teambuilding, đồng phục. Chọn mẫu rồi tạo phòng trong vài phút.",
+  },
+  family: {
+    title: "Mẫu gia đình",
+    description: "Mẫu Vote Đi cho đặt tên con, quà, phim tối nay. Chọn mẫu rồi tạo phòng trong vài phút.",
+  },
+  community: {
+    title: "Mẫu cộng đồng & cuộc thi",
+    description: "Mẫu Vote Đi cho cuộc thi ảnh, bình chọn nhanh. Chọn mẫu rồi tạo phòng trong vài phút.",
+  },
+};

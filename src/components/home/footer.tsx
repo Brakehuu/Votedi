@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
+import { TemplateIcon } from "@/components/seo/template-icon";
 import { FORMAT_LIST } from "@/lib/formats";
 import { POPULAR_TEMPLATE_SLUGS, getTemplate } from "@/lib/templates";
 
@@ -19,7 +20,9 @@ export function SiteFooter() {
           </p>
         </div>
         <div>
-          <p className="mb-2 text-sm font-extrabold">Kiểu vote</p>
+          <p className="mb-2 text-sm font-extrabold">
+            <Link href="/kieu-vote">Kiểu vote</Link>
+          </p>
           <div className="flinks !flex-col !items-start gap-1.5">
             {formats.map((f) => (
               <Link key={f.id} href={`/kieu-vote/${f.slug}`}>
@@ -33,8 +36,9 @@ export function SiteFooter() {
           <div className="flinks !flex-col !items-start gap-1.5">
             {popular.map((t) =>
               t ? (
-                <Link key={t.slug} href={`/mau/${t.slug}`}>
-                  {t.emoji} {t.title}
+                <Link key={t.slug} href={`/mau/${t.slug}`} className="inline-flex items-center gap-2">
+                  <TemplateIcon template={t} className="tpl-ic-sm" />
+                  {t.title}
                 </Link>
               ) : null,
             )}
