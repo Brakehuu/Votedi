@@ -4,12 +4,13 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 Run the files in `supabase/migrations/` **in order** in the Supabase SQL editor (each one is safe to re-run):
 
-`0001` → … → `0014_phase4` → **`0015_feedback`**
+`0001` → … → `0015_feedback` → **`0016_phase6`**
 
 Phase gần đây:
 - `0013_schedule.sql` — chọn lịch rảnh
 - `0014_phase4.sql` — swipe / ranking / rating / group_knockout
 - `0015_feedback.sql` — bảng `feedback` + RPC `submit_feedback` (trang Liên hệ)
+- `0016_phase6.sql` — `list_my_rooms` / `duplicate_room` / `delete_room`, rate limit tạo phòng, `cleanup_stale_rooms` (+ pg_cron nếu có)
 
 Kiểm tra schema so với code:
 
