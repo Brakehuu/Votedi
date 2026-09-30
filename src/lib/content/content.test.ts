@@ -4,6 +4,7 @@ import { countWords, readingMinutesFromText } from "./reading-time";
 import { extractToc, parseFaqSection, preprocessBody, slugifyHeading } from "./preprocess";
 import { normalizeTags, normalizeTopic, primaryTopic } from "./topics";
 import { paginate, todayIsoDate } from "./loader";
+import { formatDateVi, readingLabel } from "./display";
 
 test("slugifyHeading strips accents", () => {
   assert.equal(slugifyHeading("Câu hỏi thường gặp"), "cau-hoi-thuong-gap");
@@ -79,4 +80,15 @@ test("todayIsoDate shape", () => {
 test("parseFaqSection", () => {
   const items = parseFaqSection(`### Q1?\n\nA1\n\n### Q2?\n\nA2`);
   assert.equal(items.length, 2);
+});
+
+test("formatDateVi is dd/MM/yyyy", () => {
+  assert.equal(formatDateVi("2026-09-30"), "30/09/2026");
+});
+
+test("readingLabel short vs long", () => {
+  assert.equal(readingLabel(1), "Đọc trong 1 phút");
+  assert.equal(readingLabel(1.4), "Đọc trong 1 phút");
+  assert.equal(readingLabel(2), "2 phút đọc");
+  assert.equal(readingLabel(7), "7 phút đọc");
 });

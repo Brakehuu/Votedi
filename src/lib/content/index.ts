@@ -17,6 +17,7 @@ export {
   topicSlugFromParam,
 } from "@/lib/content/loader";
 export { readingMinutesFromText, countWords } from "@/lib/content/reading-time";
+export { formatDateVi, readingLabel } from "@/lib/content/display";
 export { preprocessBody, parseFaqSection, flattenToc } from "@/lib/content/preprocess";
 export { validateContent, formatCheckReport } from "@/lib/content/validate";
 export type { CheckIssue } from "@/lib/content/validate";

@@ -3,37 +3,44 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { MdxFigure, FaqAccordion, ShareButtons } from "@/components/content/article-chrome";
+import { Chip, ChipRow } from "@/components/content/chip";
+import { formatDateVi, readingLabel } from "@/lib/content/display";
 
-export { MdxFigure, FaqAccordion, ShareButtons };
+export type BlogCardPost = {
+  slug: string;
+  title: string;
+  description: string;
+  date: string;
+  readingMinutes: number;
+  primaryTopic: string | null;
+  primaryTopicSlug: string | null;
+  cover: string | null;
+  coverWidth: number | null;
+  coverHeight: number | null;
+  generatedCover: boolean;
+  tags?: string[];
+};
 
-export function ShareButtonsClient({ title, path }: { title: string; path: string }) {
-  return <ShareButtons title={title} path={path} />;
-}
-
-/** Client search/filter for blog index cards (title + description). */
-export function BlogSearch({
+export function BlogIndexView({
   posts,
   topics,
-  activeTopicSlug,
   allCount,
+  activeTopicSlug,
+  heroChip,
+  title,
+  titleEm,
+  lead,
+  featuredNewest,
 }: {
-  posts: {
-    slug: string;
-    title: string;
-    description: string;
-    date: string;
-    readingMinutes: number;
-    primaryTopic: string | null;
-    primaryTopicSlug: string | null;
-    cover: string | null;
-    coverWidth: number | null;
-    coverHeight: number | null;
-    generatedCover: boolean;
-  }[];
+  posts: BlogCardPost[];
   topics: { name: string; slug: string; count: number }[];
+  allCount: number;
   activeTopicSlug?: string | null;
-  allCount?: number;
+  heroChip: string;
+  title: string;
+  titleEm?: string;
+  lead: string;
+  featuredNewest?: boolean;
 }) {
   const [q, setQ] = useState("");
   const query = q.trim().toLowerCase();
@@ -43,29 +50,45 @@ export function BlogSearch({
       )
     : posts;
 
-  const featured = !query && !activeTopicSlug ? filtered[0] : null;
+  const featured = featuredNewest && !query && !activeTopicSlug ? filtered[0] : null;
   const rest = featured ? filtered.slice(1) : filtered;
-  const totalLabel = allCount ?? topics.reduce((s, t) => s + t.count, 0);
 
   return (
     <>
-      <div className="blog-search">
-        <svg viewBox="0 0 24 24" aria-hidden>
-          <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" strokeWidth="2" />
-          <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-        <input
-          type="search"
-          placeholder="Tìm bài viết…"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          aria-label="Tìm bài viết"
-        />
-      </div>
+      <header className="blog-hero">
+        <div>
+          <ChipRow>
+            <Chip>{heroChip}</Chip>
+          </ChipRow>
+          <h1>
+            {title}
+            {titleEm ? (
+              <>
+                {" "}
+                <em>{titleEm}</em>
+              </>
+            ) : null}
+          </h1>
+          <p>{lead}</p>
+        </div>
+        <label className="blog-search">
+          <svg viewBox="0 0 24 24" aria-hidden>
+            <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" strokeWidth="2" />
+            <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+          <input
+            type="search"
+            placeholder="Tìm bài viết..."
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            aria-label="Tìm bài viết"
+          />
+        </label>
+      </header>
 
       <div className="blog-chips" role="navigation" aria-label="Chủ đề">
         <Link href="/blog" className={`blog-tab ${!activeTopicSlug ? "on" : ""}`}>
-          Tất cả <small>{totalLabel}</small>
+          Tất cả <small>{allCount}</small>
         </Link>
         {topics.map((t) => (
           <Link
@@ -84,17 +107,25 @@ export function BlogSearch({
             <CardCover post={featured} priority />
           </div>
           <div className="blog-feat-tx">
-            {featured.primaryTopic ? <span className="chip">{featured.primaryTopic}</span> : null}
+            <ChipRow>
+              <Chip>Bài mới nhất</Chip>
+              {featured.primaryTopic ? <Chip muted>{featured.primaryTopic}</Chip> : null}
+            </ChipRow>
             <h2>{featured.title}</h2>
             <p>{featured.description}</p>
             <div className="blog-meta">
-              <span>{featured.readingMinutes} phút đọc</span>
+              <span>{formatDateVi(featured.date)}</span>
               <i />
-              <span>{featured.date}</span>
+              <span>{readingLabel(featured.readingMinutes)}</span>
             </div>
+            <span className="btn btn-primary" style={{ alignSelf: "flex-start", marginTop: 4 }}>
+              Đọc bài viết
+            </span>
           </div>
         </Link>
       ) : null}
+
+      {rest.length && featured ? <h2 className="blog-grid-h">Bài viết khác</h2> : null}
 
       <div className="blog-cards">
         {rest.map((p) => (
@@ -103,13 +134,15 @@ export function BlogSearch({
               <CardCover post={p} />
             </div>
             <div className="blog-card-bd">
-              {p.primaryTopic ? <span className="chip">{p.primaryTopic}</span> : null}
+              <ChipRow>
+                {p.primaryTopic ? <Chip>{p.primaryTopic}</Chip> : null}
+              </ChipRow>
               <h3>{p.title}</h3>
               <p>{p.description}</p>
               <div className="blog-meta">
-                <span>{p.readingMinutes} phút</span>
+                <span>{formatDateVi(p.date)}</span>
                 <i />
-                <span>{p.date}</span>
+                <span>{readingLabel(p.readingMinutes)}</span>
               </div>
             </div>
           </Link>
@@ -117,7 +150,7 @@ export function BlogSearch({
       </div>
 
       {!filtered.length ? (
-        <p className="blog-empty">Không thấy bài khớp “{q}”. Thử từ khoá khác nhé.</p>
+        <p className="blog-empty">Chưa có bài nào khớp. Thử từ khóa khác hoặc chọn &quot;Tất cả&quot;.</p>
       ) : null}
     </>
   );
@@ -127,14 +160,7 @@ function CardCover({
   post,
   priority,
 }: {
-  post: {
-    title: string;
-    cover: string | null;
-    coverWidth: number | null;
-    coverHeight: number | null;
-    generatedCover: boolean;
-    slug: string;
-  };
+  post: BlogCardPost;
   priority?: boolean;
 }) {
   const src = post.cover ?? `/blog/${post.slug}/opengraph-image`;

@@ -20,10 +20,12 @@ export default async function CreateRoomPage({
       ? "bracket"
       : null;
   return (
-    <CreateRoomWizard
-      initialFormat={initialFormat}
-      initialMode={initialMode}
-      initialTemplate={initialTemplate}
-    />
+    <div>
+      <CreateRoomWizard
+        initialFormat={initialFormat}
+        initialMode={initialMode}
+        initialTemplate={initialTemplate}
+      />
+    </div>
   );
 }

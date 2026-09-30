@@ -3,7 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SiteFooter } from "@/components/home/footer";
 import { BlogCtaBand } from "@/components/content/blog-cta";
-import { BlogSearch } from "@/components/content/blog-search";
+import { BlogIndexView } from "@/components/content/blog-search";
+import { toCard } from "@/app/blog/page";
 import { allTopicCounts, listContent, paginate } from "@/lib/content";
 import { absoluteUrl } from "@/lib/site";
 import { breadcrumbList, jsonLd } from "@/lib/seo";
@@ -40,22 +41,8 @@ export default async function BlogPagedPage({ params }: { params: Promise<{ n: s
   const { items, page, totalPages } = paginate(all, pageNum, PER_PAGE);
   if (pageNum > totalPages) notFound();
 
-  const posts = items.map((p) => ({
-    slug: p.slug,
-    title: p.title,
-    description: p.description,
-    date: p.date,
-    readingMinutes: p.readingMinutes,
-    primaryTopic: p.primaryTopic,
-    primaryTopicSlug: p.primaryTopicSlug,
-    cover: p.cover,
-    coverWidth: p.coverWidth,
-    coverHeight: p.coverHeight,
-    generatedCover: p.generatedCover,
-  }));
-
   return (
-    <>
+    <div>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={jsonLd({
@@ -68,17 +55,15 @@ export default async function BlogPagedPage({ params }: { params: Promise<{ n: s
         })}
       />
       <main className="blog-wrap">
-        <header className="blog-hero">
-          <div>
-            <p className="text-sm font-semibold text-primary">Blog</p>
-            <h1>
-              Trang {page} <em>/ {totalPages}</em>
-            </h1>
-            <p>Tiếp tục khám phá mẹo chốt quyết định cùng nhóm.</p>
-          </div>
-        </header>
-
-        <BlogSearch posts={posts} topics={topics} allCount={all.length} />
+        <BlogIndexView
+          posts={items.map(toCard)}
+          topics={topics}
+          allCount={all.length}
+          heroChip="Blog Vote Đi"
+          title={`Trang ${page}`}
+          titleEm={`/ ${totalPages}`}
+          lead="Tiếp tục khám phá mẹo chốt quyết định cùng nhóm."
+        />
 
         <nav className="blog-pager" aria-label="Phân trang">
           <Link href={page === 2 ? "/blog" : `/blog/trang/${page - 1}`} rel="prev" className="btn btn-g">
@@ -99,6 +84,6 @@ export default async function BlogPagedPage({ params }: { params: Promise<{ n: s
         <BlogCtaBand />
       </main>
       <SiteFooter />
-    </>
+    </div>
   );
 }

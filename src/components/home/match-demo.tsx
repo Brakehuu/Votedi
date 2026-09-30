@@ -79,13 +79,13 @@ export function MatchDemo() {
 
   return (
     <div className="stage">
-      <div className="chip glass c1">
+      <div className="match-chip glass c1">
         <span className="av" style={{ background: "#0891B2", width: 22, height: 22, fontSize: 10, margin: 0 }}>
           L
         </span>
         Linh vừa chọn Mẫu Đen
       </div>
-      <div className="chip glass c2">🏆 Thắng cặp này vào chung kết</div>
+      <div className="match-chip glass c2">🏆 Thắng cặp này vào chung kết</div>
 
       <div className="match glass" role="group" aria-label="Demo cặp đấu">
         <div className="match-head">

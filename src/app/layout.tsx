@@ -50,10 +50,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="vi" suppressHydrationWarning className={`${beVietnam.variable} h-full`}>
+    <html lang="vi" suppressHydrationWarning data-scroll-behavior="smooth" className={beVietnam.variable}>
       <body
         suppressHydrationWarning
-        className="min-h-full bg-background font-sans text-foreground antialiased"
+        className="min-h-screen bg-background font-sans text-foreground antialiased"
       >
         <Script
           id="votedi-ld-json"
@@ -66,8 +66,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         />
         <Providers>
           <Mesh />
-          <SiteHeader />
-          {children}
+          <div>
+            <SiteHeader />
+            <div>{children}</div>
+          </div>
         </Providers>
       </body>
     </html>

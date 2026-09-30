@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { ChevronDown } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
@@ -10,6 +11,11 @@ import { FORMAT_LIST } from "@/lib/formats";
 const FORMATS = FORMAT_LIST.filter((f) => f.available);
 
 export function SiteHeader() {
+  const pathname = usePathname();
+  return <SiteHeaderInner key={pathname} />;
+}
+
+function SiteHeaderInner() {
   const [open, setOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);

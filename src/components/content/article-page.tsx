@@ -2,37 +2,34 @@ import Link from "next/link";
 import { SiteFooter } from "@/components/home/footer";
 import { CoverImage, TemplateCta } from "@/components/content/mdx-components";
 import { MdxBody } from "@/components/content/mdx-body";
-import { FaqAccordion, ShareButtons } from "@/components/content/article-chrome";
+import { FaqAccordion } from "@/components/content/article-chrome";
+import { Chip, ChipRow } from "@/components/content/chip";
+import { ShareButtons } from "@/components/content/share-buttons";
 import { PostShell } from "@/components/content/post-shell";
+import { TemplateIcon } from "@/components/seo/template-icon";
 import type { ContentDoc } from "@/lib/content";
+import { formatDateVi, readingLabel } from "@/lib/content/display";
 import { getTemplate } from "@/lib/templates";
 import { absoluteUrl } from "@/lib/site";
 import { breadcrumbList, faqPage, jsonLd } from "@/lib/seo";
-
-function formatDate(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("vi-VN", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-      timeZone: "Asia/Ho_Chi_Minh",
-    }).format(new Date(`${iso}T12:00:00+07:00`));
-  } catch {
-    return iso;
-  }
-}
 
 export function ArticlePage({
   doc,
   related,
   basePath,
+  prev,
+  next,
 }: {
   doc: ContentDoc;
   related: ContentDoc[];
   basePath: "/blog" | "/huong-dan";
+  prev?: ContentDoc | null;
+  next?: ContentDoc | null;
 }) {
   const path = `${basePath}/${doc.slug}`;
+  const shareUrl = absoluteUrl(path);
   const template = doc.template ? getTemplate(doc.template) : null;
+  const extraTags = doc.tags.filter((t) => t !== doc.primaryTopic).slice(0, 2);
   const crumbs =
     basePath === "/blog"
       ? [
@@ -60,7 +57,7 @@ export function ArticlePage({
       dateModified: doc.updated,
       author: { "@type": "Organization", name: doc.author },
       image: absoluteUrl(coverSrc),
-      mainEntityOfPage: absoluteUrl(path),
+      mainEntityOfPage: shareUrl,
     },
     { "@context": "https://schema.org", ...breadcrumbList(crumbs) },
   ];
@@ -69,9 +66,9 @@ export function ArticlePage({
   }
 
   return (
-    <>
+    <div>
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(json)} />
-      <main className="blog-wrap">
+      <main className={`blog-wrap ${basePath === "/huong-dan" ? "guide-prose" : ""}`}>
         <nav className="blog-crumb" aria-label="Breadcrumb">
           {crumbs.map((c, i) => (
             <span key={`${c.path}-${i}`} className="inline-flex items-center gap-2">
@@ -83,25 +80,26 @@ export function ArticlePage({
 
         <header className="blog-ph">
           <div>
-            {doc.primaryTopic && doc.primaryTopicSlug && basePath === "/blog" ? (
-              <Link href={`/blog/chu-de/${doc.primaryTopicSlug}`} className="chip">
-                {doc.primaryTopic}
-              </Link>
-            ) : (
-              <span className="chip">{basePath === "/blog" ? "Blog" : "Hướng dẫn"}</span>
-            )}
-            {doc.draft ? (
-              <span className="ml-2 inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-900">
-                Nháp
-              </span>
-            ) : null}
+            <ChipRow>
+              {doc.primaryTopic && doc.primaryTopicSlug && basePath === "/blog" ? (
+                <Chip href={`/blog/chu-de/${doc.primaryTopicSlug}`}>{doc.primaryTopic}</Chip>
+              ) : (
+                <Chip>{basePath === "/blog" ? "Blog" : "Hướng dẫn"}</Chip>
+              )}
+              {extraTags.map((t) => (
+                <Chip key={t} muted>
+                  {t}
+                </Chip>
+              ))}
+              {doc.draft ? <Chip muted>Nháp</Chip> : null}
+            </ChipRow>
             <h1>{doc.title}</h1>
             <p className="blog-lede">{doc.description}</p>
             <div className="blog-by">
               <div>
                 <b>{doc.author}</b>
                 <small>
-                  Cập nhật {formatDate(doc.updated)} · {doc.readingMinutes} phút đọc
+                  Cập nhật {formatDateVi(doc.updated)} · {readingLabel(doc.readingMinutes)}
                 </small>
               </div>
             </div>
@@ -128,12 +126,48 @@ export function ArticlePage({
               <MdxBody source={doc.body} assetMap={doc.assetMap} summary={doc.summary} />
               <FaqAccordion items={doc.faq} />
               {template ? <TemplateCta slug={template.slug} /> : null}
+              <ShareButtons title={doc.title} url={shareUrl} variant="mobile" />
+              {basePath === "/huong-dan" ? (
+                <aside className="blog-tcta">
+                  <span className="blog-tcta-ic" aria-hidden>
+                    +
+                  </span>
+                  <div>
+                    <b>Tạo phòng thử</b>
+                    <span>Miễn phí, không cần tài khoản. Gửi link Zalo là cả nhóm vote được.</span>
+                  </div>
+                  <Link href="/tao-phong" className="btn btn-primary btn-sm shrink-0">
+                    Tạo phòng thử
+                  </Link>
+                </aside>
+              ) : null}
               <aside className="blog-author glass">
                 <div>
                   <b>{doc.author}</b>
-                  <p>Vote Đi giúp nhóm chốt quyết định nhanh: tạo phòng, gửi link, vote cùng nhau.</p>
+                  <p>
+                    Đội ngũ Vote Đi viết về cách chốt việc chung cho nhóm bạn, lớp và team. Có góp ý cho bài viết? Nhắn
+                    cho chúng mình ở trang Liên hệ.
+                  </p>
                 </div>
               </aside>
+              {prev || next ? (
+                <nav className="guide-pager" aria-label="Hướng dẫn trước và tiếp theo">
+                  {prev ? (
+                    <Link href={`${basePath}/${prev.slug}`}>
+                      <small>Hướng dẫn trước</small>
+                      {prev.title}
+                    </Link>
+                  ) : (
+                    <span />
+                  )}
+                  {next ? (
+                    <Link href={`${basePath}/${next.slug}`}>
+                      <small>Hướng dẫn tiếp theo</small>
+                      {next.title}
+                    </Link>
+                  ) : null}
+                </nav>
+              ) : null}
             </article>
           }
           rail={
@@ -141,7 +175,7 @@ export function ArticlePage({
               {template ? (
                 <div className="blog-rc glass">
                   <div className="blog-rc-ic" aria-hidden>
-                    {template.emoji}
+                    <TemplateIcon template={template} className="tpl-ic-on-grad" />
                   </div>
                   <h4>{template.title}</h4>
                   <p>{template.intro}</p>
@@ -151,8 +185,8 @@ export function ArticlePage({
                 </div>
               ) : null}
               <div className="blog-rc glass">
-                <small className="t">Chia sẻ</small>
-                <ShareButtons title={doc.title} path={path} />
+                <small className="t">Chia sẻ bài viết</small>
+                <ShareButtons title={doc.title} url={shareUrl} variant="rail" />
               </div>
               {related.length ? (
                 <div className="blog-rc glass blog-rel">
@@ -160,9 +194,7 @@ export function ArticlePage({
                   {related.map((r) => (
                     <Link key={r.slug} href={`${basePath}/${r.slug}`}>
                       {r.title}
-                      <small>
-                        {r.readingMinutes} phút · {formatDate(r.date)}
-                      </small>
+                      <small>{readingLabel(r.readingMinutes)}</small>
                     </Link>
                   ))}
                 </div>
@@ -187,16 +219,33 @@ export function ArticlePage({
                     />
                   </div>
                   <div className="blog-card-bd">
+                    <ChipRow>{r.primaryTopic ? <Chip>{r.primaryTopic}</Chip> : null}</ChipRow>
                     <h3>{r.title}</h3>
-                    <p>{r.description}</p>
+                    <div className="blog-meta">
+                      <span>{formatDateVi(r.date)}</span>
+                      <i />
+                      <span>{readingLabel(r.readingMinutes)}</span>
+                    </div>
                   </div>
                 </Link>
               ))}
             </div>
           </section>
         ) : null}
+
+        {basePath === "/huong-dan" ? (
+          <section className="blog-band" style={{ marginTop: 48 }}>
+            <div>
+              <h2>Tạo phòng thử</h2>
+              <p>Miễn phí, không cần tài khoản. Gửi link Zalo là cả nhóm vote được.</p>
+              <Link href="/tao-phong" className="btn">
+                Tạo phòng miễn phí
+              </Link>
+            </div>
+          </section>
+        ) : null}
       </main>
       <SiteFooter />
-    </>
+    </div>
   );
 }
