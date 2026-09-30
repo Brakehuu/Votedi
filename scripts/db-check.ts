@@ -1,9 +1,8 @@
 /**
  * npm run db:check
- * So sánh RPC/bảng mà code gọi với schema trên Supabase (SUPABASE_SECRET_KEY).
- * In ra mục thiếu + file migration gợi ý.
+ * So sánh RPC/bảng mà code cần với OpenAPI của PostgREST
+ * (GET {SUPABASE_URL}/rest/v1/ với apikey + Authorization).
  */
-import { createClient } from "@supabase/supabase-js";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -53,6 +52,9 @@ const REQUIRED_RPCS = [
   "host_rename_item",
   "host_kick_member",
   "submit_feedback",
+  "duplicate_room",
+  "delete_room",
+  "list_my_rooms",
 ] as const;
 
 const REQUIRED_TABLES = [
@@ -72,21 +74,27 @@ const REQUIRED_TABLES = [
   "feedback",
 ] as const;
 
-/** Gợi ý migration chứa từng RPC/bảng (scan file SQL). */
+function trimEnv(value: string | undefined) {
+  return (value ?? "").replace(/\r/g, "").trim();
+}
+
 function migrationHints(migrationsDir: string) {
   const map = new Map<string, string[]>();
-  const files = readdirSync(migrationsDir)
-    .filter((f) => f.endsWith(".sql"))
-    .sort();
+  let files: string[] = [];
+  try {
+    files = readdirSync(migrationsDir).filter((f) => f.endsWith(".sql")).sort();
+  } catch {
+    return map;
+  }
   for (const file of files) {
     const body = readFileSync(join(migrationsDir, file), "utf8");
     for (const name of [...REQUIRED_RPCS, ...REQUIRED_TABLES]) {
       const rpcHit =
         new RegExp(`create\\s+or\\s+replace\\s+function\\s+public\\.${name}\\b`, "i").test(body) ||
         new RegExp(`function\\s+public\\.${name}\\b`, "i").test(body);
-      const tableHit = new RegExp(`create\\s+table\\s+if\\s+not\\s+exists\\s+public\\.${name}\\b`, "i").test(
-        body,
-      ) || new RegExp(`create\\s+table\\s+public\\.${name}\\b`, "i").test(body);
+      const tableHit =
+        new RegExp(`create\\s+table\\s+if\\s+not\\s+exists\\s+public\\.${name}\\b`, "i").test(body) ||
+        new RegExp(`create\\s+table\\s+public\\.${name}\\b`, "i").test(body);
       if (rpcHit || tableHit) {
         const list = map.get(name) ?? [];
         if (!list.includes(file)) list.push(file);
@@ -97,47 +105,83 @@ function migrationHints(migrationsDir: string) {
   return map;
 }
 
+type OpenApiDoc = {
+  paths?: Record<string, unknown>;
+  definitions?: Record<string, unknown>;
+  components?: { schemas?: Record<string, unknown> };
+};
+
+function collectFromOpenApi(doc: OpenApiDoc) {
+  const rpcs = new Set<string>();
+  const tables = new Set<string>();
+  for (const path of Object.keys(doc.paths ?? {})) {
+    const rpc = path.match(/^\/rpc\/([a-zA-Z0-9_]+)/);
+    if (rpc?.[1]) {
+      rpcs.add(rpc[1]);
+      continue;
+    }
+    const table = path.match(/^\/([a-zA-Z0-9_]+)$/);
+    if (table?.[1] && table[1] !== "rpc") tables.add(table[1]);
+  }
+  for (const name of Object.keys(doc.definitions ?? {})) {
+    if (!name.includes(".")) tables.add(name);
+  }
+  for (const name of Object.keys(doc.components?.schemas ?? {})) {
+    if (!name.includes(".")) tables.add(name);
+  }
+  return { rpcs, tables };
+}
+
 async function main() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SECRET_KEY;
+  const url = trimEnv(process.env.NEXT_PUBLIC_SUPABASE_URL).replace(/\/$/, "");
+  const key = trimEnv(process.env.SUPABASE_SECRET_KEY);
   if (!url || !key) {
     console.error("Thiếu NEXT_PUBLIC_SUPABASE_URL hoặc SUPABASE_SECRET_KEY trong môi trường.");
     process.exit(1);
   }
 
-  const supabase = createClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  console.log("=== Vote Đi · db:check ===\n");
+
+  let res: Response;
+  try {
+    res = await fetch(`${url}/rest/v1/`, {
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        Accept: "application/openapi+json, application/json",
+      },
+    });
+  } catch (err) {
+    console.error("Không kết nối được DB:", err instanceof Error ? err.message : String(err));
+    process.exit(1);
+  }
+
+  if (res.status === 401 || res.status === 403) {
+    console.error("Không kết nối được DB (HTTP", res.status, ") — kiểm tra SUPABASE_SECRET_KEY.");
+    process.exit(1);
+  }
+  if (!res.ok) {
+    console.error("Không kết nối được DB (HTTP", res.status, ").");
+    process.exit(1);
+  }
+
+  let doc: OpenApiDoc;
+  try {
+    doc = (await res.json()) as OpenApiDoc;
+  } catch {
+    console.error("Không kết nối được DB (OpenAPI không đọc được).");
+    process.exit(1);
+  }
+
+  const { rpcs, tables } = collectFromOpenApi(doc);
   const migrationsDir = join(process.cwd(), "supabase", "migrations");
   const hints = migrationHints(migrationsDir);
 
-  const missingRpcs: string[] = [];
-  const missingTables: string[] = [];
-
-  for (const name of REQUIRED_RPCS) {
-    const { error } = await supabase.rpc(name as never, {} as never);
-    // PGRST202 = function not found in schema cache
-    if (error && (error.code === "PGRST202" || /Could not find the function/i.test(error.message ?? ""))) {
-      missingRpcs.push(name);
-    }
-  }
-
-  for (const name of REQUIRED_TABLES) {
-    const { error } = await supabase.from(name).select("*").limit(0);
-    if (
-      error &&
-      (error.code === "PGRST205" ||
-        error.code === "42P01" ||
-        /Could not find the table|relation .* does not exist|schema cache/i.test(error.message ?? ""))
-    ) {
-      missingTables.push(name);
-    }
-  }
-
-  console.log("=== Vote Đi · db:check ===\n");
+  const missingRpcs = REQUIRED_RPCS.filter((name) => !rpcs.has(name));
+  const missingTables = REQUIRED_TABLES.filter((name) => !tables.has(name));
 
   if (!missingRpcs.length && !missingTables.length) {
-    console.log("OK — đủ RPC và bảng mà code cần.");
+    console.log(`OK — đủ ${REQUIRED_RPCS.length} RPC và ${REQUIRED_TABLES.length} bảng.`);
     process.exit(0);
   }
 
@@ -149,7 +193,6 @@ async function main() {
     }
     console.log("");
   }
-
   if (missingTables.length) {
     console.log("Bảng thiếu:");
     for (const name of missingTables) {
@@ -167,11 +210,10 @@ async function main() {
     console.log("Migration cần chạy (theo thứ tự số):");
     for (const f of [...files].sort()) console.log(`  supabase/migrations/${f}`);
   }
-
   process.exit(1);
 }
 
 main().catch((err) => {
-  console.error(err);
+  console.error("Không kết nối được DB:", err instanceof Error ? err.message : String(err));
   process.exit(1);
 });
