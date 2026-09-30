@@ -50,6 +50,8 @@ export function JoinForm({ preview }: { preview: RoomPreview }) {
         p_avatar_emoji: file ? null : emoji,
       });
       if (error) throw error;
+      const { track } = await import("@/lib/analytics");
+      track("join_room", { via: "form" });
       router.refresh();
     } catch (error) {
       toast.error(reportError(error));

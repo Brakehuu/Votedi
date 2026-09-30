@@ -377,6 +377,12 @@ export function CreateRoomWizard({
           room = data as CreatedRoom;
         }
         setCreated(room);
+        const { track } = await import("@/lib/analytics");
+        track("create_room", {
+          format: def.id,
+          mode: def.id === "bracket" ? bracket.mode : def.id === "schedule" ? schedule.mode : undefined,
+          template: template?.slug,
+        });
         saveIdentity(displayName.trim(), file ? null : emoji);
         if (def.id === "quick" && room.id && !quick.allowMemberOptions) {
           await supabase.rpc("host_set_member_options", {

@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { ThemeProvider, useTheme } from "next-themes";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Toaster } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
@@ -14,6 +16,11 @@ function ToastHost() {
       theme={resolvedTheme === "dark" ? "dark" : "light"}
       position="top-center"
       richColors
+      closeButton
+      toastOptions={{
+        className: "votedi-toast",
+        duration: 3200,
+      }}
     />
   );
 }
@@ -35,7 +42,29 @@ function AuthBanner() {
 
   if (!message) return null;
   return (
-    <div className="bg-warn/20 px-4 py-3 text-center text-sm text-foreground">{message}</div>
+    <div className="bg-warn/20 px-4 py-3 text-center text-sm text-foreground" role="status">
+      {message}
+    </div>
+  );
+}
+
+function OfflineBanner() {
+  const [offline, setOffline] = useState(false);
+  useEffect(() => {
+    const sync = () => setOffline(!navigator.onLine);
+    sync();
+    window.addEventListener("online", sync);
+    window.addEventListener("offline", sync);
+    return () => {
+      window.removeEventListener("online", sync);
+      window.removeEventListener("offline", sync);
+    };
+  }, []);
+  if (!offline) return null;
+  return (
+    <div className="bg-lose/15 px-4 py-2 text-center text-sm font-semibold text-foreground" role="alert">
+      Mất mạng — sẽ tự đồng bộ khi có lại kết nối.
+    </div>
   );
 }
 
@@ -49,8 +78,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
       scriptProps={{ suppressHydrationWarning: true }}
     >
       <AuthBanner />
+      <OfflineBanner />
       {children}
       <ToastHost />
+      <Analytics />
+      <SpeedInsights />
     </ThemeProvider>
   );
 }

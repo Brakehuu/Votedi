@@ -165,9 +165,11 @@ export function RoomProvider({
       toast.error(reportError(error));
       return;
     }
+    const { track } = await import("@/lib/analytics");
+    track("close_room", { format: bundle.room.format });
     toast.success("Đã chốt kết quả");
     await refresh();
-  }, [initial.room.id, refresh, supabase]);
+  }, [bundle.room.format, initial.room.id, refresh, supabase]);
 
   const reopenRoom = useCallback(async () => {
     const { error } = await supabase.rpc("reopen_room", { p_room_id: initial.room.id });
@@ -387,7 +389,7 @@ export function RoomProvider({
     let timer: number | undefined;
     const schedule = () => {
       window.clearTimeout(timer);
-      timer = window.setTimeout(() => void refresh(), 200);
+      timer = window.setTimeout(() => void refresh(), 300);
     };
 
     const byRoom = `room_id=eq.${initial.room.id}`;
@@ -677,11 +679,13 @@ export function RoomProvider({
       );
       if (!ok) return;
       vibrateSoft();
+      const { track } = await import("@/lib/analytics");
+      track("vote", { format: bundle.room.format });
       const title = bundle.items.find((item) => item.id === itemId)?.title || "lựa chọn";
       toast.success(`Đã chọn ${title}`);
       await closeIfDue();
     },
-    [bundle.items, bundle.room.id, bundle.room.settings.max_choices, bundle.votes, closeIfDue, me.id, supabase, writeVotes],
+    [bundle.items, bundle.room.format, bundle.room.id, bundle.room.settings.max_choices, bundle.votes, closeIfDue, me.id, supabase, writeVotes],
   );
 
   const castVoteValue = useCallback(
@@ -700,9 +704,11 @@ export function RoomProvider({
       );
       if (!ok) return;
       vibrateSoft();
+      const { track } = await import("@/lib/analytics");
+      track("vote", { format: bundle.room.format, via: "value" });
       await closeIfDue();
     },
-    [bundle.room.id, closeIfDue, me.id, supabase, writeVotes],
+    [bundle.room.format, bundle.room.id, closeIfDue, me.id, supabase, writeVotes],
   );
 
   const setRanking = useCallback(

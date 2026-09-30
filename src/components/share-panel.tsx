@@ -28,6 +28,8 @@ export function SharePanel({
     try {
       await navigator.clipboard.writeText(value);
       toast.success(`Đã copy ${label}`);
+      const { track } = await import("@/lib/analytics");
+      track("share", { via: "copy" });
     } catch {
       toast.error("Không copy được. Hãy chọn và copy thủ công.");
     }
@@ -39,6 +41,8 @@ export function SharePanel({
     if (navigator.share) {
       try {
         await navigator.share({ title: roomName, text, url });
+        const { track } = await import("@/lib/analytics");
+        track("share", { via: "native" });
         return;
       } catch {
         return;
