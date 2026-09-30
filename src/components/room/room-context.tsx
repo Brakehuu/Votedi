@@ -16,7 +16,7 @@ import { reportError } from "@/lib/errors";
 import { roundLabel } from "@/lib/bracket";
 import { fetchRoomBundle } from "@/lib/room-data";
 import { createClient } from "@/lib/supabase/client";
-import type { Match, MatchVote, Member, QualifyVote, RoomBundle, RoomStatus, Vote } from "@/lib/types";
+import type { Match, MatchVote, Member, QualifyVote, RoomBundle, RoomStatus, ScheduleAnswer, ScheduleAnswerValue, ScheduleNote, Vote } from "@/lib/types";
 
 type RoomContextValue = {
   bundle: RoomBundle;
@@ -52,6 +52,10 @@ type RoomContextValue = {
   castVote: (itemId: string) => Promise<void>;
   removeVote: (itemId: string) => Promise<void>;
   clearMyVotes: () => Promise<void>;
+  setScheduleAnswers: (
+    answers: { slot_id: string; answer: ScheduleAnswerValue | null }[],
+    note?: string | null,
+  ) => Promise<boolean>;
   closeIfDue: () => Promise<void>;
   closeRoom: () => Promise<void>;
   refresh: () => Promise<void>;
@@ -309,6 +313,7 @@ export function RoomProvider({
   );
 
   const isBracket = initial.room.format === "bracket";
+  const isSchedule = initial.room.format === "schedule";
   const settle = isBracket ? advance : closeIfDue;
 
   const drawBracket = useCallback(async () => {
@@ -398,7 +403,12 @@ export function RoomProvider({
           .on("postgres_changes", { event: "*", schema: "public", table: "qualify_votes", filter: byRoom }, schedule)
           .on("postgres_changes", { event: "*", schema: "public", table: "matches", filter: byRoom }, schedule)
           .on("postgres_changes", { event: "*", schema: "public", table: "match_votes" }, schedule)
-      : channel.on("postgres_changes", { event: "*", schema: "public", table: "votes", filter: byRoom }, schedule);
+      : isSchedule
+        ? channel
+            .on("postgres_changes", { event: "*", schema: "public", table: "schedule_slots", filter: byRoom }, schedule)
+            .on("postgres_changes", { event: "*", schema: "public", table: "schedule_answers" }, schedule)
+            .on("postgres_changes", { event: "*", schema: "public", table: "schedule_notes", filter: byRoom }, schedule)
+        : channel.on("postgres_changes", { event: "*", schema: "public", table: "votes", filter: byRoom }, schedule);
     channel
       .on("presence", { event: "sync" }, () => {
         const state = channel.presenceState<{ member_id: string }>();
@@ -422,7 +432,7 @@ export function RoomProvider({
       window.clearTimeout(timer);
       void supabase.removeChannel(channel);
     };
-  }, [initial.room.id, isBracket, me.display_name, me.id, refresh, settle, supabase]);
+  }, [initial.room.id, isBracket, isSchedule, me.display_name, me.id, refresh, settle, supabase]);
 
   const toggleQualify = useCallback(
     async (itemId: string) => {
@@ -695,6 +705,74 @@ export function RoomProvider({
     await closeIfDue();
   }, [closeIfDue, initial.room.id, me.id, supabase, writeVotes]);
 
+  const setScheduleAnswers = useCallback(
+    async (
+      answers: { slot_id: string; answer: ScheduleAnswerValue | null }[],
+      note?: string | null,
+    ) => {
+      const previousAnswers = bundle.scheduleAnswers;
+      const previousNotes = bundle.scheduleNotes;
+      pause.current += 1;
+
+      setBundle((current) => {
+        let nextAnswers = [...current.scheduleAnswers];
+        for (const row of answers) {
+          nextAnswers = nextAnswers.filter(
+            (a) => !(a.slot_id === row.slot_id && a.member_id === me.id),
+          );
+          if (row.answer) {
+            nextAnswers.push({
+              slot_id: row.slot_id,
+              member_id: me.id,
+              answer: row.answer,
+              updated_at: new Date().toISOString(),
+            } satisfies ScheduleAnswer);
+          }
+        }
+        let nextNotes = current.scheduleNotes;
+        if (note !== undefined && note !== null) {
+          const trimmed = note.trim();
+          nextNotes = nextNotes.filter((n) => n.member_id !== me.id);
+          if (trimmed) {
+            nextNotes = [
+              {
+                room_id: current.room.id,
+                member_id: me.id,
+                note: trimmed.slice(0, 120),
+                updated_at: new Date().toISOString(),
+              } satisfies ScheduleNote,
+              ...nextNotes,
+            ];
+          }
+        }
+        return { ...current, scheduleAnswers: nextAnswers, scheduleNotes: nextNotes };
+      });
+
+      const { error } = await supabase.rpc("set_schedule_answers", {
+        p_room_id: initial.room.id,
+        p_answers: answers.map((row) => ({
+          slot_id: row.slot_id,
+          answer: row.answer,
+        })),
+        p_note: note === undefined ? null : note,
+      });
+      pause.current -= 1;
+      if (error) {
+        setBundle((current) => ({
+          ...current,
+          scheduleAnswers: previousAnswers,
+          scheduleNotes: previousNotes,
+        }));
+        toast.error(reportError(error));
+        await closeIfDue();
+        return false;
+      }
+      await closeIfDue();
+      return true;
+    },
+    [bundle.scheduleAnswers, bundle.scheduleNotes, closeIfDue, initial.room.id, me.id, supabase],
+  );
+
   const value = useMemo(
     () => ({
       bundle,
@@ -730,6 +808,7 @@ export function RoomProvider({
       castVote,
       removeVote,
       clearMyVotes,
+      setScheduleAnswers,
       closeIfDue,
       closeRoom,
       refresh,
@@ -740,6 +819,7 @@ export function RoomProvider({
       bundle,
       castVote,
       clearMyVotes,
+      setScheduleAnswers,
       closeIfDue,
       closeRoom,
       drawBracket,

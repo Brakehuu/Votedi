@@ -19,6 +19,14 @@ import {
   quickSettingsError,
   type QuickSettingsValue,
 } from "@/components/formats/quick/settings-fields";
+import {
+  DEFAULT_SCHEDULE_SETTINGS,
+  ScheduleContentFields,
+  scheduleSettingsError,
+  scheduleSettingsPayload,
+  type ScheduleSettingsValue,
+} from "@/components/formats/schedule/settings-fields";
+import { buildSlotDrafts } from "@/lib/schedule";
 import { AvatarPicker } from "@/components/room/avatar-picker";
 import { SharePanel } from "@/components/share-panel";
 import { Button } from "@/components/ui/button";
@@ -41,6 +49,7 @@ const IDENTITY_KEY = "votedi:identity";
 const NAME_PLACEHOLDER: Partial<Record<FormatId, string>> = {
   quick: "Cuối tuần đi đâu chơi?",
   bracket: "Áo team đi Đà Lạt",
+  schedule: "Họp lớp 12A1",
 };
 
 type CreatedRoom = { id: string | null; slug: string };
@@ -83,6 +92,7 @@ export function CreateRoomWizard({
     mode: initialMode ?? DEFAULT_BRACKET_SETTINGS.mode,
   });
   const [quick, setQuick] = useState<QuickSettingsValue>(DEFAULT_QUICK_SETTINGS);
+  const [schedule, setSchedule] = useState<ScheduleSettingsValue>(DEFAULT_SCHEDULE_SETTINGS);
   const [usePassword, setUsePassword] = useState(false);
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -92,6 +102,7 @@ export function CreateRoomWizard({
   const [progress, setProgress] = useState<string | null>(null);
   const [created, setCreated] = useState<CreatedRoom | null>(null);
   const [optionsSaved, setOptionsSaved] = useState(false);
+  const [slotsSaved, setSlotsSaved] = useState(false);
   const [template, setTemplate] = useState<RoomTemplate | null>(null);
 
   const def = format ? FORMATS[format] : null;
@@ -101,6 +112,7 @@ export function CreateRoomWizard({
     setTemplate(null);
     setFormat(id);
     if (id === "quick") setQuick({ ...DEFAULT_QUICK_SETTINGS, optionKind: "any" });
+    if (id === "schedule") setSchedule({ ...DEFAULT_SCHEDULE_SETTINGS });
     setStep(1);
   }
 
@@ -129,6 +141,7 @@ export function CreateRoomWizard({
         if (placeMode && options.some((row) => row.type !== "place")) return "Chế độ địa điểm chỉ nhận link Maps.";
         if (options.some((row) => row.type === "link" && !row.link?.url)) return "Có link chưa hợp lệ.";
       }
+      if (def.id === "schedule") return scheduleSettingsError(schedule);
     }
     if (step === 2) {
       if (usePassword && (password.length < 4 || password.length > 72)) return "Mật khẩu phòng từ 4 đến 72 ký tự.";
@@ -259,12 +272,14 @@ export function CreateRoomWizard({
           p_settings:
             def.id === "bracket"
               ? bracketSettingsPayload(bracket)
-              : {
-                  max_choices: quick.maxChoices,
-                  tie_rule: quick.tieRule,
-                  allow_member_options: quick.allowMemberOptions,
-                  option_kind: placeMode ? "place" : "any",
-                },
+              : def.id === "schedule"
+                ? scheduleSettingsPayload(schedule)
+                : {
+                    max_choices: quick.maxChoices,
+                    tie_rule: quick.tieRule,
+                    allow_member_options: quick.allowMemberOptions,
+                    option_kind: placeMode ? "place" : "any",
+                  },
           p_deadline: def.id === "quick" ? quickDeadlineIso(quick, Date.now()) : null,
           p_template_slug: template?.slug ?? null,
           ...identity,
@@ -299,7 +314,28 @@ export function CreateRoomWizard({
           });
         }
       }
-      if (def.id !== "bracket" && !optionsSaved && room.id) {
+      if (def.id === "schedule" && !slotsSaved && room.id) {
+        setProgress("Đang lưu lịch...");
+        const drafts = buildSlotDrafts(
+          schedule.dates,
+          schedule.mode,
+          schedule.dayParts,
+          schedule.timeSlots,
+        );
+        const { error: slotsError } = await supabase.rpc("set_schedule_slots", {
+          p_room_id: room.id,
+          p_slots: drafts.map((d) => ({
+            date: d.date,
+            part: d.part ?? null,
+            start_time: d.start_time ?? null,
+            end_time: d.end_time ?? null,
+          })),
+        });
+        if (slotsError) throw slotsError;
+        setSlotsSaved(true);
+        setProgress(null);
+      }
+      if (def.id !== "bracket" && def.id !== "schedule" && !optionsSaved && room.id) {
         await saveOptions(room.id);
         setOptionsSaved(true);
       }
@@ -420,6 +456,8 @@ export function CreateRoomWizard({
                 placeMode={placeMode}
               />
             </div>
+          ) : def.id === "schedule" ? (
+            <ScheduleContentFields value={schedule} onChange={setSchedule} />
           ) : (
             <p className="rounded-[22px] bg-primary-soft p-4 text-sm">
               Tạo phòng xong, bạn tải ảnh các mẫu ngay trong phòng.
@@ -468,9 +506,14 @@ export function CreateRoomWizard({
             <Input value={displayName} maxLength={40} onChange={(event) => setDisplayName(event.target.value)} />
           </label>
           <AvatarPicker emoji={emoji} onEmoji={setEmoji} file={file} onFile={setFile} />
-          {created && !optionsSaved && def?.id !== "bracket" ? (
+          {created && !optionsSaved && def?.id !== "bracket" && def?.id !== "schedule" ? (
             <p className="rounded-2xl bg-muted p-4 text-sm">
               Phòng đã tạo nhưng chưa lưu được lựa chọn. Bấm “Thử lại” để lưu tiếp.
+            </p>
+          ) : null}
+          {created && !slotsSaved && def?.id === "schedule" ? (
+            <p className="rounded-2xl bg-muted p-4 text-sm">
+              Phòng đã tạo nhưng chưa lưu được lịch. Bấm “Thử lại” để lưu tiếp.
             </p>
           ) : null}
         </section>

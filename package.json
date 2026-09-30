@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test src/lib/places/*.test.ts"
+    "test": "tsx --test src/lib/places/*.test.ts src/lib/schedule.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

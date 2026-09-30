@@ -7,12 +7,20 @@ export type MatchStatus = "pending" | "live" | "done";
 export type ItemType = "image" | "text" | "place" | "link";
 export type ResultsVisibility = "live" | "after_vote" | "after_close";
 
+export type ScheduleMode = "days" | "day_parts" | "time_slots" | "trip";
+export type ScheduleDayPart = "morning" | "afternoon" | "evening";
+export type ScheduleAnswerValue = "yes" | "maybe" | "no";
+
 export type RoomSettings = {
   max_choices?: number;
   tie_rule?: TieRule;
   /** Restrict option UI: 'place' = vote địa điểm mode. */
   option_kind?: "place" | "any";
   template_slug?: string;
+  schedule_mode?: ScheduleMode;
+  trip_length?: number;
+  day_parts?: ScheduleDayPart[];
+  time_slots?: { start: string; end: string }[];
 };
 
 export type PlaceData = {
@@ -33,14 +41,97 @@ export type LinkData = {
   site_name?: string | null;
 };
 
-export type RoomResultRow = { item_id: string; score: number; votes: number };
+export type RoomResultRow = {
+  item_id?: string;
+  slot_id?: string;
+  score: number;
+  votes?: number;
+  yes?: number;
+  maybe?: number;
+  yes_count?: number;
+  maybe_count?: number;
+  start?: string;
+  end?: string;
+  part?: string | null;
+  start_time?: string | null;
+  end_time?: string | null;
+  position?: number;
+};
 
 export type RoomResult = {
   format: FormatId;
   winner_item_id: string | null;
+  winner_slot_id?: string | null;
+  winner_start?: string | null;
+  winner_end?: string | null;
+  winner_label?: string | null;
   tied: boolean;
   board: RoomResultRow[];
   closed_at: string;
+};
+
+export type ScheduleSlot = {
+  id: string;
+  room_id: string;
+  slot_date: string;
+  part: ScheduleDayPart | null;
+  start_time: string | null;
+  end_time: string | null;
+  position: number;
+  created_at?: string;
+};
+
+export type ScheduleAnswer = {
+  slot_id: string;
+  member_id: string;
+  answer: ScheduleAnswerValue;
+  updated_at?: string;
+};
+
+export type ScheduleNote = {
+  room_id: string;
+  member_id: string;
+  note: string;
+  updated_at?: string;
+};
+
+export type ScheduleTallySlot = {
+  slot_id: string;
+  slot_date?: string;
+  part?: string | null;
+  start_time?: string | null;
+  end_time?: string | null;
+  position?: number;
+  yes_count: number;
+  maybe_count: number;
+  no_count: number;
+  score: number;
+  yes_ids: string[];
+  maybe_ids: string[];
+  no_ids: string[];
+};
+
+export type ScheduleTallies = {
+  visible: boolean;
+  reason?: string;
+  anonymous?: boolean;
+  slots: ScheduleTallySlot[];
+};
+
+export type ScheduleTripWindowRow = {
+  start: string;
+  end: string;
+  score: number;
+  full: number;
+  part: number;
+  out: number;
+};
+
+export type ScheduleTripWindows = {
+  visible: boolean;
+  reason?: string;
+  anonymous?: boolean;
+  windows: ScheduleTripWindowRow[];
 };
 
 export type Room = {
@@ -179,6 +270,11 @@ export type RoomBundle = {
   matchVotes: MatchVote[];
   reactions: Reaction[];
   comments: Comment[];
+  scheduleSlots: ScheduleSlot[];
+  scheduleAnswers: ScheduleAnswer[];
+  scheduleNotes: ScheduleNote[];
+  scheduleTallies: ScheduleTallies | null;
+  scheduleTripWindows: ScheduleTripWindows | null;
   /** Epoch ms when the bundle was fetched; seeds countdowns so SSR and hydration agree. */
   serverNow: number;
 };

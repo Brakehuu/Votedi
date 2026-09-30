@@ -101,9 +101,20 @@ export const FORMATS: Record<FormatId, FormatDef> = {
     maxOptions: 0,
     minOptions: 0,
     allowMemberOptions: false,
-    defaultSettings: {},
-    available: false,
-    hint: () => "Chạm ô để báo bạn rảnh",
+    defaultSettings: {
+      schedule_mode: "day_parts",
+      day_parts: ["morning", "afternoon", "evening"],
+      trip_length: 3,
+      time_slots: [{ start: "19:00", end: "21:00" }],
+    },
+    available: true,
+    hint: (settings) => {
+      const mode = settings.schedule_mode ?? "day_parts";
+      if (mode === "trip") return `Tô ngày rảnh · chuyến ${settings.trip_length ?? 3} ngày`;
+      if (mode === "days") return "Đánh dấu ngày bạn rảnh";
+      if (mode === "time_slots") return "Đánh dấu khung giờ bạn rảnh";
+      return "Đánh dấu buổi bạn rảnh";
+    },
   },
   swipe: {
     id: "swipe",

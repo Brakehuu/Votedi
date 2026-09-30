@@ -3,6 +3,7 @@
 import type { ComponentType } from "react";
 import { BracketVoteView } from "@/components/formats/bracket/vote-view";
 import { QuickVoteView } from "@/components/formats/quick/vote-view";
+import { ScheduleVoteView } from "@/components/formats/schedule/vote-view";
 import { getFormat } from "@/lib/formats";
 import type { FormatId, Room } from "@/lib/types";
 
@@ -15,6 +16,7 @@ type FormatViews = {
 const VIEWS: Partial<Record<FormatId, FormatViews>> = {
   bracket: { VoteView: BracketVoteView, narrow: (room) => room.status === "qualify" },
   quick: { VoteView: QuickVoteView, narrow: () => true },
+  schedule: { VoteView: ScheduleVoteView, narrow: () => true },
 };
 
 function UnsupportedView({ room }: { room: Room }) {
