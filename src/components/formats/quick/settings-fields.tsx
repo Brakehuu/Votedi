@@ -80,10 +80,14 @@ export function QuickSettingsFields({
   value,
   optionCount,
   onChange,
+  hideMaxChoices = false,
+  hideMemberOptions = false,
 }: {
   value: QuickSettingsValue;
   optionCount: number;
   onChange: (next: QuickSettingsValue) => void;
+  hideMaxChoices?: boolean;
+  hideMemberOptions?: boolean;
 }) {
   const set = <K extends keyof QuickSettingsValue>(key: K, next: QuickSettingsValue[K]) =>
     onChange({ ...value, [key]: next });
@@ -112,25 +116,31 @@ export function QuickSettingsFields({
             {value.deadline === "none" ? "Vote tới khi chủ phòng chốt kết quả." : "Hết giờ phòng tự chốt kết quả."}
           </p>
         </fieldset>
-        <div className="space-y-2">
-          <span className="text-sm font-semibold">Mỗi người chọn tối đa</span>
-          <Stepper
-            value={value.maxChoices}
-            min={1}
-            max={Math.max(1, Math.min(optionCount, 30))}
-            label="số lựa chọn"
-            onChange={(next) => set("maxChoices", next)}
+        {!hideMaxChoices ? (
+          <div className="space-y-2">
+            <span className="text-sm font-semibold">Mỗi người chọn tối đa</span>
+            <Stepper
+              value={value.maxChoices}
+              min={1}
+              max={Math.max(1, Math.min(optionCount, 30))}
+              label="số lựa chọn"
+              onChange={(next) => set("maxChoices", next)}
+            />
+            <p className="text-xs text-muted-foreground">
+              {value.maxChoices === 1
+                ? "Mỗi người chọn 1, đổi ý thoải mái."
+                : `Mỗi người chọn được tới ${value.maxChoices} lựa chọn.`}
+            </p>
+          </div>
+        ) : null}
+        {!hideMemberOptions ? (
+          <ToggleRow
+            title="Cho thành viên thêm lựa chọn"
+            body="Mọi người trong phòng có thể dán thêm địa điểm / link / chữ."
+            checked={value.allowMemberOptions}
+            onChange={(next) => set("allowMemberOptions", next)}
           />
-          <p className="text-xs text-muted-foreground">
-            {value.maxChoices === 1 ? "Mỗi người chọn 1, đổi ý thoải mái." : `Mỗi người chọn được tới ${value.maxChoices} lựa chọn.`}
-          </p>
-        </div>
-        <ToggleRow
-          title="Cho thành viên thêm lựa chọn"
-          body="Mọi người trong phòng có thể dán thêm địa điểm / link / chữ."
-          checked={value.allowMemberOptions}
-          onChange={(next) => set("allowMemberOptions", next)}
-        />
+        ) : null}
       </SettingsGroup>
 
       <AdvancedGroup>

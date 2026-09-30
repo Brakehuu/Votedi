@@ -38,7 +38,7 @@ import { FORMATS, FORMAT_LIST } from "@/lib/formats";
 import { prepareItemImage } from "@/lib/images";
 import { ensureUser, uploadPublicImage } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/client";
-import { PLACE_TEMPLATES, type RoomTemplate } from "@/lib/templates";
+import { OTHER_TEMPLATES, PLACE_TEMPLATES, type RoomTemplate } from "@/lib/templates";
 import type { FormatId, RoomMode } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -50,6 +50,9 @@ const NAME_PLACEHOLDER: Partial<Record<FormatId, string>> = {
   quick: "Cuối tuần đi đâu chơi?",
   bracket: "Áo team đi Đà Lạt",
   schedule: "Họp lớp 12A1",
+  swipe: "Hôm nay ăn gì?",
+  ranking: "Đặt tên cho bé",
+  rating: "Cuộc thi ảnh đẹp",
 };
 
 type CreatedRoom = { id: string | null; slug: string };
@@ -107,6 +110,8 @@ export function CreateRoomWizard({
 
   const def = format ? FORMATS[format] : null;
   const placeMode = quick.optionKind === "place" || template?.optionKind === "place";
+  const needsOptions = def?.id === "quick" || def?.id === "swipe" || def?.id === "ranking" || def?.id === "rating";
+  const optionFormats = needsOptions;
 
   function pickFormat(id: FormatId) {
     setTemplate(null);
@@ -123,9 +128,17 @@ export function CreateRoomWizard({
     setQuick({
       ...DEFAULT_QUICK_SETTINGS,
       maxChoices: item.defaultSettings.max_choices ?? 1,
-      optionKind: "place",
+      optionKind: item.optionKind === "place" ? "place" : "any",
+      allowMemberOptions: item.format === "swipe" || item.format === "quick",
     });
-    setOptions([]);
+    setOptions(
+      item.suggestedOptions.map((title) => ({
+        key: crypto.randomUUID(),
+        type: "text" as const,
+        title,
+        emoji: null as string | null,
+      })),
+    );
     setStep(1);
   }
 
@@ -133,7 +146,7 @@ export function CreateRoomWizard({
     if (!def) return "Chọn kiểu vote.";
     if (step === 1) {
       if (name.trim().length < 1) return "Nhập tên phòng.";
-      if (def.id === "quick") {
+      if (def.id === "quick" || def.id === "swipe" || def.id === "ranking" || def.id === "rating") {
         if (options.length < def.minOptions) return `Cần ít nhất ${def.minOptions} lựa chọn.`;
         if (options.some((row) => row.resolving)) return "Đang lấy vị trí, đợi một chút…";
         if (options.some((row) => !row.title.trim() || row.title === "Đang lấy vị trí…"))
@@ -146,7 +159,12 @@ export function CreateRoomWizard({
     if (step === 2) {
       if (usePassword && (password.length < 4 || password.length > 72)) return "Mật khẩu phòng từ 4 đến 72 ký tự.";
       if (def.id === "bracket") return bracketSettingsError(bracket);
-      if (def.id === "quick") return quickSettingsError(quick, options.length, Date.now());
+      if (def.id === "quick" || def.id === "swipe" || def.id === "ranking" || def.id === "rating")
+        return quickSettingsError(
+          def.id === "quick" ? quick : { ...quick, maxChoices: 1 },
+          Math.max(1, options.length),
+          Date.now(),
+        );
     }
     if (step === 3 && displayName.trim().length < 1) return "Nhập tên của bạn.";
     return null;
@@ -274,13 +292,23 @@ export function CreateRoomWizard({
               ? bracketSettingsPayload(bracket)
               : def.id === "schedule"
                 ? scheduleSettingsPayload(schedule)
-                : {
-                    max_choices: quick.maxChoices,
-                    tie_rule: quick.tieRule,
-                    allow_member_options: quick.allowMemberOptions,
-                    option_kind: placeMode ? "place" : "any",
-                  },
-          p_deadline: def.id === "quick" ? quickDeadlineIso(quick, Date.now()) : null,
+                : def.id === "swipe" || def.id === "ranking" || def.id === "rating"
+                  ? {
+                      tie_rule: quick.tieRule,
+                      allow_member_options: def.id === "swipe" ? quick.allowMemberOptions : false,
+                      option_kind: placeMode ? "place" : "any",
+                      judge_weight: def.id === "rating" ? 0.5 : undefined,
+                    }
+                  : {
+                      max_choices: quick.maxChoices,
+                      tie_rule: quick.tieRule,
+                      allow_member_options: quick.allowMemberOptions,
+                      option_kind: placeMode ? "place" : "any",
+                    },
+          p_deadline:
+            def.id === "quick" || def.id === "swipe" || def.id === "ranking" || def.id === "rating"
+              ? quickDeadlineIso(quick, Date.now())
+              : null,
           p_template_slug: template?.slug ?? null,
           ...identity,
         });
@@ -391,6 +419,28 @@ export function CreateRoomWizard({
           </div>
 
           <div className="space-y-3">
+            <h2 className="text-sm font-extrabold tracking-wide text-muted-foreground uppercase">Mẫu phổ biến</h2>
+            <div className="fmt-grid">
+              {OTHER_TEMPLATES.map((item) => (
+                <button
+                  key={item.slug}
+                  type="button"
+                  className="fmt-card glass"
+                  onClick={() => pickTemplate(item)}
+                >
+                  <span className="fmt-ic text-2xl" aria-hidden>
+                    {item.emoji}
+                  </span>
+                  <span className="min-w-0">
+                    <b>{item.title}</b>
+                    <span className="d">{item.intro}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-3">
             <h2 className="text-sm font-extrabold tracking-wide text-muted-foreground uppercase">Kiểu vote khác</h2>
             <div className="fmt-grid">
               {WIZARD_FORMATS.map((item) => (
@@ -446,7 +496,7 @@ export function CreateRoomWizard({
               className="w-full resize-none rounded-2xl border border-input bg-card px-4 py-3 text-base text-foreground outline-none transition-shadow placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/30"
             />
           </label>
-          {def.id === "quick" ? (
+          {optionFormats ? (
             <div className="space-y-2">
               <span className="text-sm font-semibold">{placeMode ? "Địa điểm" : "Các lựa chọn"}</span>
               <OptionEditor
@@ -470,8 +520,14 @@ export function CreateRoomWizard({
         <section className="space-y-7">
           <h1 className="text-3xl font-extrabold tracking-tight">Cài đặt</h1>
           {def.id === "bracket" ? <BracketSettingsFields value={bracket} onChange={setBracket} /> : null}
-          {def.id === "quick" ? (
-            <QuickSettingsFields value={quick} optionCount={options.length} onChange={setQuick} />
+          {def.id === "quick" || def.id === "swipe" || def.id === "ranking" || def.id === "rating" ? (
+            <QuickSettingsFields
+              value={quick}
+              optionCount={options.length}
+              onChange={setQuick}
+              hideMaxChoices={def.id !== "quick"}
+              hideMemberOptions={def.id === "ranking" || def.id === "rating"}
+            />
           ) : null}
           <SettingsGroup title="Riêng tư">
             <ToggleRow

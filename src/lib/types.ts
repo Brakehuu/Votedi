@@ -1,5 +1,5 @@
 export type FormatId = "quick" | "bracket" | "schedule" | "swipe" | "ranking" | "rating";
-export type RoomMode = "qualify_knockout" | "knockout";
+export type RoomMode = "qualify_knockout" | "knockout" | "group_knockout";
 export type RoomStatus = "lobby" | "qualify" | "drawn" | "knockout" | "done" | "open" | "closed";
 export type TieRule = "random" | "host";
 export type SeedingMode = "random" | "manual";
@@ -21,6 +21,9 @@ export type RoomSettings = {
   trip_length?: number;
   day_parts?: ScheduleDayPart[];
   time_slots?: { start: string; end: string }[];
+  judge_weight?: number;
+  has_judges?: boolean;
+  groups?: string[][];
 };
 
 export type PlaceData = {

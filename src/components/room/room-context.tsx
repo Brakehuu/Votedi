@@ -50,8 +50,10 @@ type RoomContextValue = {
   extendDeadline: (minutes: 5 | 15) => Promise<void>;
   endRound: () => Promise<void>;
   castVote: (itemId: string) => Promise<void>;
+  castVoteValue: (itemId: string, value: number) => Promise<void>;
   removeVote: (itemId: string) => Promise<void>;
   clearMyVotes: () => Promise<void>;
+  setRanking: (itemIds: string[]) => Promise<boolean>;
   setScheduleAnswers: (
     answers: { slot_id: string; answer: ScheduleAnswerValue | null }[],
     note?: string | null,
@@ -682,6 +684,64 @@ export function RoomProvider({
     [bundle.items, bundle.room.id, bundle.room.settings.max_choices, bundle.votes, closeIfDue, me.id, supabase, writeVotes],
   );
 
+  const castVoteValue = useCallback(
+    async (itemId: string, value: number) => {
+      const optimistic: Vote = {
+        id: `tmp-${itemId}-${value}`,
+        room_id: bundle.room.id,
+        item_id: itemId,
+        member_id: me.id,
+        value,
+        created_at: new Date().toISOString(),
+      };
+      const ok = await writeVotes(
+        (votes) => [...votes.filter((vote) => !(vote.member_id === me.id && vote.item_id === itemId)), optimistic],
+        () => supabase.rpc("cast_vote", { p_item_id: itemId, p_value: value }),
+      );
+      if (!ok) return;
+      vibrateSoft();
+      await closeIfDue();
+    },
+    [bundle.room.id, closeIfDue, me.id, supabase, writeVotes],
+  );
+
+  const setRanking = useCallback(
+    async (itemIds: string[]) => {
+      const n = itemIds.length;
+      const previous = bundle.votes;
+      pause.current += 1;
+      setBundle((current) => ({
+        ...current,
+        votes: [
+          ...current.votes.filter((v) => v.member_id !== me.id),
+          ...itemIds.map(
+            (itemId, index): Vote => ({
+              id: `tmp-rank-${itemId}`,
+              room_id: current.room.id,
+              item_id: itemId,
+              member_id: me.id,
+              value: n - index,
+              created_at: new Date().toISOString(),
+            }),
+          ),
+        ],
+      }));
+      const { error } = await supabase.rpc("set_ranking", {
+        p_room_id: initial.room.id,
+        p_item_ids: itemIds,
+      });
+      pause.current -= 1;
+      if (error) {
+        setBundle((current) => ({ ...current, votes: previous }));
+        toast.error(reportError(error));
+        return false;
+      }
+      await closeIfDue();
+      return true;
+    },
+    [bundle.votes, closeIfDue, initial.room.id, me.id, supabase],
+  );
+
   const removeVote = useCallback(
     async (itemId: string) => {
       const ok = await writeVotes(
@@ -806,8 +866,10 @@ export function RoomProvider({
       extendDeadline,
       endRound,
       castVote,
+      castVoteValue,
       removeVote,
       clearMyVotes,
+      setRanking,
       setScheduleAnswers,
       closeIfDue,
       closeRoom,
@@ -818,7 +880,9 @@ export function RoomProvider({
       advance,
       bundle,
       castVote,
+      castVoteValue,
       clearMyVotes,
+      setRanking,
       setScheduleAnswers,
       closeIfDue,
       closeRoom,

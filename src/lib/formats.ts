@@ -128,8 +128,9 @@ export const FORMATS: Record<FormatId, FormatDef> = {
     minOptions: 2,
     allowMemberOptions: true,
     defaultSettings: {},
-    available: false,
+    available: true,
     hint: () => "Quẹt phải nếu thích, trái để bỏ qua",
+    computeResults: tally,
   },
   ranking: {
     id: "ranking",
@@ -143,8 +144,9 @@ export const FORMATS: Record<FormatId, FormatDef> = {
     minOptions: 2,
     allowMemberOptions: false,
     defaultSettings: {},
-    available: false,
+    available: true,
     hint: () => "Kéo thả để xếp thứ tự bạn thích",
+    computeResults: tally,
   },
   rating: {
     id: "rating",
@@ -157,9 +159,10 @@ export const FORMATS: Record<FormatId, FormatDef> = {
     maxOptions: 50,
     minOptions: 2,
     allowMemberOptions: false,
-    defaultSettings: {},
-    available: false,
+    defaultSettings: { judge_weight: 0.5 },
+    available: true,
     hint: () => "Chấm sao cho từng lựa chọn",
+    computeResults: tally,
   },
 };
 
