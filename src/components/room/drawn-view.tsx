@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { seedNumbersFromMatches, slotsFromMatches, swapSlots } from "@/lib/seeding";
 
 function seedingHint(mode: string | null, seeding: string) {
+  if (mode === "group_knockout") return "Xếp chéo nhất/nhì các bảng.";
   if (mode === "qualify_knockout") return "Xếp theo thứ hạng vòng loại.";
   if (seeding === "manual") return "Chạm 2 mẫu trên sơ đồ để đổi chỗ.";
   return "Mẫu được xếp nhánh ngẫu nhiên, thêm hay xóa mẫu sẽ tự xếp lại.";
@@ -30,7 +31,8 @@ export function DrawnView() {
   const seeding = bundle.room.seeding_mode ?? "random";
   const count = bundle.items.length;
   const ready = isKnockout ? count >= 2 && count <= 16 : bundle.matches.length > 0;
-  const showSeeds = bundle.room.mode === "qualify_knockout";
+  const showSeeds =
+    bundle.room.mode === "qualify_knockout" || bundle.room.mode === "group_knockout";
   const canEditSlots = me.is_host && seeding === "manual" && ready;
   const canShuffle = me.is_host && isKnockout && seeding === "random" && ready;
 

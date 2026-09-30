@@ -7,6 +7,7 @@ import { MemberAvatar } from "@/components/room/member-avatar";
 import { useRoom } from "@/components/room/room-context";
 import { ZoomIcon } from "@/components/icons/zoom-icon";
 import { ImageLightbox } from "@/components/room/image-lightbox";
+import { splitGroups } from "@/lib/group-knockout";
 import { cn } from "@/lib/utils";
 import type { Member } from "@/lib/types";
 
@@ -49,8 +50,12 @@ function tieRuleLabel(rule: string) {
 export function QualifyView() {
   const { bundle, me, onlineIds, toggleQualify, advance } = useRoom();
   void onlineIds;
-  const topN = bundle.room.knockout_size;
-  const quota = bundle.room.votes_per_member;
+  const isGroup = bundle.room.mode === "group_knockout";
+  const topN = isGroup ? 2 : bundle.room.knockout_size;
+  const groups = useMemo(() => (isGroup ? splitGroups(bundle.items) : []), [bundle.items, isGroup]);
+  const [groupTab, setGroupTab] = useState(0);
+  const activeGroup = groups[groupTab] ?? groups[0];
+  const quota = isGroup ? 2 : bundle.room.votes_per_member;
   const memberById = useMemo(
     () => new Map(bundle.members.map((member) => [member.id, member])),
     [bundle.members],
@@ -80,16 +85,22 @@ export function QualifyView() {
     () => new Set(bundle.qualifyVotes.filter((v) => v.member_id === me.id).map((v) => v.item_id)),
     [bundle.qualifyVotes, me.id],
   );
-  const used = mine.size;
+  const groupItemIds = useMemo(
+    () => new Set((activeGroup?.items ?? bundle.items).map((i) => i.id)),
+    [activeGroup, bundle.items],
+  );
+  const usedInGroup = [...mine].filter((id) => groupItemIds.has(id)).length;
+  const used = isGroup ? usedInGroup : mine.size;
   const left = Math.max(0, quota - used);
 
   const ranked = useMemo(() => {
-    return [...bundle.items].sort((a, b) => {
+    const pool = isGroup && activeGroup ? activeGroup.items : bundle.items;
+    return [...pool].sort((a, b) => {
       const delta = (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0);
       if (delta !== 0) return delta;
       return a.created_at.localeCompare(b.created_at) || a.id.localeCompare(b.id);
     });
-  }, [bundle.items, counts]);
+  }, [activeGroup, bundle.items, counts, isGroup]);
 
   const maxVotes = Math.max(1, ...ranked.map((item) => counts.get(item.id) ?? 0));
   const edgeVotes = ranked[topN - 1] ? counts.get(ranked[topN - 1]!.id) ?? 0 : 0;
@@ -196,7 +207,7 @@ export function QualifyView() {
 
       <section className="ql-sum glass">
         <div className="ql-sum-top">
-          <span className="ql-stage">Vòng loại</span>
+          <span className="ql-stage">{isGroup ? `Vòng bảng ${activeGroup?.label ?? ""}` : "Vòng loại"}</span>
           {bundle.room.qualify_deadline ? (
             <span className="ko-timer">
               <ClockIcon />
@@ -204,8 +215,16 @@ export function QualifyView() {
             </span>
           ) : null}
         </div>
-        <h1>Top {topN} mẫu nhiều phiếu nhất vào sơ đồ đấu</h1>
-        <p>Chọn những mẫu bạn thích. Đổi phiếu thoải mái đến khi hết giờ.</p>
+        <h1>
+          {isGroup
+            ? `Nhất và nhì bảng ${activeGroup?.label ?? ""} vào sơ đồ`
+            : `Top ${topN} mẫu nhiều phiếu nhất vào sơ đồ đấu`}
+        </h1>
+        <p>
+          {isGroup
+            ? "Mỗi bảng chọn 2 mẫu bạn thích. Vạch “Vào vòng trong” sau hạng 2."
+            : "Chọn những mẫu bạn thích. Đổi phiếu thoải mái đến khi hết giờ."}
+        </p>
         <div className="ql-stats">
           <div className="ql-stat">
             <small>Mẫu</small>
@@ -224,8 +243,24 @@ export function QualifyView() {
         </div>
       </section>
 
+      {isGroup && groups.length > 1 ? (
+        <div className="ql-seg mb-3 mt-3" role="tablist">
+          {groups.map((g, i) => (
+            <button
+              key={g.label}
+              type="button"
+              role="tab"
+              className={groupTab === i ? "on" : undefined}
+              onClick={() => setGroupTab(i)}
+            >
+              Bảng {g.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
       <div className="ql-tools">
-        <h2>{view === "grid" ? "Tất cả mẫu" : "Bảng xếp hạng"}</h2>
+        <h2>{view === "grid" ? "Tất cả mẫu" : isGroup ? `Bảng ${activeGroup?.label ?? ""}` : "Bảng xếp hạng"}</h2>
         <div className="ql-seg" role="tablist">
           <button
             type="button"
@@ -263,7 +298,7 @@ export function QualifyView() {
                 {index === topN ? (
                   <>
                     <div className="ql-cut">
-                      <span>Vạch vào sơ đồ · Top {topN}</span>
+                      <span>{isGroup ? "Vào vòng trong · Hạng 1–2" : `Vạch vào sơ đồ · Top ${topN}`}</span>
                     </div>
                     {tiedAtCut ? (
                       <p className="ql-tie">

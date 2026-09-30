@@ -22,17 +22,21 @@ export default async function Image({ params }: { params: Promise<{ slug: string
         roomName = preview.name;
         const { data: room } = await supabase
           .from("rooms")
-          .select("champion_item_id")
+          .select("champion_item_id, result")
           .eq("id", preview.id)
           .maybeSingle();
-        if (room?.champion_item_id) {
+        const winnerId =
+          room?.champion_item_id ??
+          (room?.result as { winner_item_id?: string } | null)?.winner_item_id ??
+          null;
+        if (winnerId) {
           const { data: item } = await supabase
             .from("items")
-            .select("title, image_url")
-            .eq("id", room.champion_item_id)
+            .select("title, image_url, emoji")
+            .eq("id", winnerId)
             .maybeSingle();
           if (item) {
-            champTitle = item.title || champTitle;
+            champTitle = item.title || item.emoji || champTitle;
             champUrl = item.image_url;
           }
         }

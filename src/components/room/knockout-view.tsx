@@ -146,9 +146,11 @@ export function KnockoutView() {
           meId={me.id}
           championItemId={bundle.room.champion_item_id}
           onSelectMatch={(matchId) => setOpenId(matchId)}
-          showSeeds={bundle.room.mode === "qualify_knockout"}
+          showSeeds={
+            bundle.room.mode === "qualify_knockout" || bundle.room.mode === "group_knockout"
+          }
           seedByItem={
-            bundle.room.mode === "qualify_knockout"
+            bundle.room.mode === "qualify_knockout" || bundle.room.mode === "group_knockout"
               ? seedNumbersFromMatches(bundle.matches, size)
               : undefined
           }

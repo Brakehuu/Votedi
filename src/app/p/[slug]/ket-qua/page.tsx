@@ -69,14 +69,70 @@ export default async function ResultsPage({ params }: { params: Promise<{ slug: 
 
   const bundle = await fetchRoomBundle(supabase, preview.id);
   if (!bundle) return <SetupNotice detail="Không tải được dữ liệu phòng." />;
-  if (bundle.room.format !== "bracket" && bundle.room.format !== "quick") redirect(`/p/${slug}`);
+  if (bundle.room.format !== "bracket" && bundle.room.format !== "quick" && bundle.room.format !== "swipe" && bundle.room.format !== "ranking" && bundle.room.format !== "rating") {
+    redirect(`/p/${slug}`);
+  }
 
-  if (bundle.room.format === "quick") {
+  if (
+    bundle.room.format === "quick" ||
+    bundle.room.format === "swipe" ||
+    bundle.room.format === "ranking" ||
+    bundle.room.format === "rating"
+  ) {
     const { getFormat } = await import("@/lib/formats");
     const { OptionCard, optionTitle } = await import("@/components/options/option-card");
     const { directionsUrl } = await import("@/components/options/place-map");
-    const format = getFormat("quick");
-    const rows = format.computeResults?.(bundle.items, bundle.votes) ?? [];
+    const { computeSwipeResults } = await import("@/lib/swipe");
+    const { computeBordaResults } = await import("@/lib/ranking");
+    const { computeRatingResults } = await import("@/lib/rating");
+    const format = getFormat(bundle.room.format);
+    const fmt = bundle.room.format;
+
+    let rows: { item: (typeof bundle.items)[number]; score: number; votes: number; extra?: string }[] = [];
+    if (fmt === "swipe") {
+      rows = computeSwipeResults(bundle.items, bundle.votes, bundle.members).map((r) => ({
+        item: r.item,
+        score: r.score,
+        votes: r.likes + r.supers,
+        extra: r.matchAll ? "Match cả nhóm 🎉" : r.supers ? `${r.supers} 🔥` : undefined,
+      }));
+    } else if (fmt === "ranking") {
+      rows = computeBordaResults(bundle.items, bundle.votes).map((r) => ({
+        item: r.item,
+        score: r.score,
+        votes: r.votes,
+        extra: r.avgRank != null ? `hạng TB ${r.avgRank.toFixed(2)}` : undefined,
+      }));
+    } else if (fmt === "rating") {
+      const judgeIds = new Set<string>();
+      try {
+        const { data: j } = await supabase.from("room_judges").select("member_id").eq("room_id", bundle.room.id);
+        for (const row of j ?? []) judgeIds.add(row.member_id as string);
+      } catch {
+        /* ignore */
+      }
+      rows = computeRatingResults(
+        bundle.items,
+        bundle.votes,
+        judgeIds,
+        bundle.room.settings.judge_weight ?? 0.5,
+      ).map((r) => ({
+        item: r.item,
+        score: r.score,
+        votes: r.votes,
+        extra:
+          r.judgeScore != null
+            ? `GK ${r.judgeScore.toFixed(1)} · KG ${r.audienceScore?.toFixed(1) ?? "—"}`
+            : undefined,
+      }));
+    } else {
+      rows = (format.computeResults?.(bundle.items, bundle.votes) ?? []).map((r) => ({
+        item: r.item,
+        score: r.score,
+        votes: r.votes,
+      }));
+    }
+
     const winnerId = bundle.room.result?.winner_item_id ?? bundle.room.champion_item_id;
     const winner = rows.find((row) => row.item.id === winnerId)?.item ?? rows[0]?.item;
     return (
@@ -84,7 +140,7 @@ export default async function ResultsPage({ params }: { params: Promise<{ slug: 
         <main className="mx-auto w-full max-w-lg space-y-6 px-4 py-8 pb-24">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-primary">Kết quả · Bình chọn nhanh</p>
+              <p className="text-sm font-semibold text-primary">Kết quả · {format.name}</p>
               <h1 className="text-3xl font-extrabold tracking-tight">{bundle.room.name}</h1>
             </div>
             <ResultsActions slug={slug} roomName={bundle.room.name} />
@@ -124,6 +180,26 @@ export default async function ResultsPage({ params }: { params: Promise<{ slug: 
               ) : null}
             </section>
           ) : null}
+          {fmt === "ranking" && rows.length >= 2 ? (
+            <section>
+              <h2 className="mb-2 text-xl font-extrabold">Bục podium</h2>
+              <div className="grid grid-cols-3 items-end gap-2">
+                {[rows[1], rows[0], rows[2]].map((row, idx) =>
+                  row ? (
+                    <div
+                      key={row.item.id}
+                      className={`glass rounded-[18px] p-3 text-center ${idx === 1 ? "pb-5 ring-2 ring-primary/30" : ""}`}
+                    >
+                      <p className="truncate text-sm font-bold">{optionTitle(row.item)}</p>
+                      <span className="text-xs text-muted-foreground">{row.score} điểm</span>
+                    </div>
+                  ) : (
+                    <div key={idx} />
+                  ),
+                )}
+              </div>
+            </section>
+          ) : null}
           <section className="space-y-2">
             <h2 className="text-xl font-extrabold">Bảng xếp hạng</h2>
             <ol className="space-y-2">
@@ -134,7 +210,14 @@ export default async function ResultsPage({ params }: { params: Promise<{ slug: 
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-semibold">{optionTitle(row.item)}</p>
-                    <p className="text-sm text-muted-foreground">{row.votes} phiếu</p>
+                    <p className="text-sm text-muted-foreground">
+                      {fmt === "rating"
+                        ? `${row.score.toFixed(1)} · ${row.votes} lượt`
+                        : fmt === "ranking"
+                          ? `${row.score} điểm`
+                          : `${row.score} điểm · ${row.votes} thích`}
+                      {row.extra ? ` · ${row.extra}` : ""}
+                    </p>
                   </div>
                 </li>
               ))}
@@ -210,9 +293,12 @@ export default async function ResultsPage({ params }: { params: Promise<{ slug: 
           </div>
         </section>
 
-        {bundle.room.mode === "qualify_knockout" && qualifyRank.length > 0 ? (
+        {(bundle.room.mode === "qualify_knockout" || bundle.room.mode === "group_knockout") &&
+        qualifyRank.length > 0 ? (
           <section className="space-y-3">
-            <h2 className="text-xl font-extrabold">Bảng xếp hạng vòng loại</h2>
+            <h2 className="text-xl font-extrabold">
+              {bundle.room.mode === "group_knockout" ? "Bảng xếp hạng vòng bảng" : "Bảng xếp hạng vòng loại"}
+            </h2>
             <ol className="space-y-2">
               {qualifyRank.map((row, index) => {
                 const voters = bundle.qualifyVotes

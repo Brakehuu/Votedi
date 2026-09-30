@@ -59,10 +59,15 @@ export function bracketSettingsError(value: BracketSettingsValue) {
 
 /** Payload for create_room_v2 (p_settings) — forwarded to the legacy create_room. */
 export function bracketSettingsPayload(value: BracketSettingsValue) {
+  const group = value.mode === "group_knockout";
   return {
     mode: value.mode,
-    votes_per_member: value.votes,
-    qualify_duration_minutes: value.mode === "qualify_knockout" ? minutes(value.customQualify, value.qualifyMinutes) : 60,
+    // group: tổng phiếu = 2 × số bảng ≈ knockout_size; UI vẫn nói “2 mỗi bảng”
+    votes_per_member: group ? value.size : value.votes,
+    qualify_duration_minutes:
+      value.mode === "qualify_knockout" || value.mode === "group_knockout"
+        ? minutes(value.customQualify, value.qualifyMinutes)
+        : 60,
     knockout_size: value.size,
     match_duration_minutes: minutes(value.customMatch, value.matchMinutes),
     tie_rule: value.tieRule,
@@ -80,20 +85,27 @@ export function BracketSettingsFields({
 }) {
   const set = <K extends keyof BracketSettingsValue>(key: K, next: BracketSettingsValue[K]) =>
     onChange({ ...value, [key]: next });
-  const qualify = value.mode === "qualify_knockout";
+  const qualify = value.mode === "qualify_knockout" || value.mode === "group_knockout";
+  const group = value.mode === "group_knockout";
 
   return (
     <div className="space-y-7">
       <SettingsGroup title="Cách đấu">
         <div className="grid gap-2">
           <ModeCard
-            active={qualify}
+            active={value.mode === "qualify_knockout"}
             title="Vòng loại → Knockout"
             body="Mọi người vote trước, top mẫu vào nhánh đấu."
             onClick={() => set("mode", "qualify_knockout")}
           />
           <ModeCard
-            active={!qualify}
+            active={group}
+            title="Vòng bảng → Knockout"
+            body="Chia bảng 4, mỗi người chọn 2; nhất/nhì vào nhánh."
+            onClick={() => onChange({ ...value, mode: "group_knockout", votes: 2, size: 8 })}
+          />
+          <ModeCard
+            active={value.mode === "knockout"}
             title="Knockout trực tiếp"
             body="Từ 2 đến 16 mẫu vào sơ đồ luôn."
             onClick={() => set("mode", "knockout")}
@@ -105,7 +117,14 @@ export function BracketSettingsFields({
         {qualify ? (
           <div className="space-y-2">
             <span className="text-sm font-semibold">Số phiếu mỗi người</span>
-            <Stepper value={value.votes} min={1} max={10} label="phiếu" onChange={(next) => set("votes", next)} />
+            <Stepper
+              value={value.votes}
+              min={1}
+              max={10}
+              label="phiếu"
+              onChange={(next) => set("votes", group ? 2 : next)}
+            />
+            {group ? <p className="text-xs text-muted-foreground">Vòng bảng: mỗi người chọn 2 mẫu trong mỗi bảng.</p> : null}
           </div>
         ) : null}
         {qualify ? (
@@ -133,11 +152,15 @@ export function BracketSettingsFields({
         ) : null}
         <fieldset className="space-y-2">
           <legend className="text-sm font-semibold">
-            {qualify ? "Top mẫu vào knockout" : "Gợi ý cỡ nhánh (thực tế theo số mẫu tải lên)"}
+            {group
+              ? "Số vào knockout (≈ 2 × số bảng)"
+              : qualify
+                ? "Top mẫu vào knockout"
+                : "Gợi ý cỡ nhánh (thực tế theo số mẫu tải lên)"}
           </legend>
           <div className="grid grid-cols-4 gap-2">
             {([2, 4, 8, 16] as const).map((size) => (
-              <Choice key={size} active={value.size === size} onClick={() => set("size", size)}>
+              <Choice key={size} active={value.size === size} onClick={() => onChange({ ...value, size, votes: group ? 2 : value.votes })}>
                 {size}
               </Choice>
             ))}

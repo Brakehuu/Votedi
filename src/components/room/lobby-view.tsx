@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { seedNumbersFromMatches, slotsFromMatches, swapSlots } from "@/lib/seeding";
 
 function seedingHint(mode: string | null, seeding: string) {
+  if (mode === "group_knockout") return "Nhất và nhì mỗi bảng vào sơ đồ, xếp chéo.";
   if (mode === "qualify_knockout") return "Xếp theo thứ hạng vòng loại.";
   if (seeding === "manual") return "Chạm 2 mẫu trên sơ đồ để đổi chỗ.";
   return "Mẫu được xếp nhánh ngẫu nhiên, thêm hay xóa mẫu sẽ tự xếp lại.";
@@ -36,10 +37,13 @@ export function LobbyView() {
   const canUpload = me.is_host || bundle.room.allow_member_upload;
   const count = bundle.items.length;
   const isKnockout = bundle.room.mode === "knockout";
+  const isGroup = bundle.room.mode === "group_knockout";
   const seeding = bundle.room.seeding_mode ?? "random";
   const ready = isKnockout
     ? count >= 2 && count <= 16
-    : count >= Math.max(2, bundle.room.knockout_size) && count <= 32;
+    : isGroup
+      ? count >= 8 && count <= 32
+      : count >= Math.max(2, bundle.room.knockout_size) && count <= 32;
   const canEditSlots = me.is_host && isKnockout && seeding === "manual" && ready;
   const canShuffle = me.is_host && isKnockout && seeding === "random" && ready;
 

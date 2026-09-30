@@ -9,7 +9,7 @@ export default async function CreateRoomPage({
 }) {
   const { kieu, mode } = await searchParams;
   const initialMode: RoomMode | null =
-    mode === "knockout" || mode === "qualify_knockout" ? mode : null;
+    mode === "knockout" || mode === "qualify_knockout" || mode === "group_knockout" ? mode : null;
   const picked = findFormat(kieu);
   const initialFormat: FormatId | null = picked?.available ? picked.id : initialMode ? "bracket" : null;
   return <CreateRoomWizard initialFormat={initialFormat} initialMode={initialMode} />;
