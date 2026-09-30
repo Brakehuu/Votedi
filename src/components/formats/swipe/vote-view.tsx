@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import confetti from "canvas-confetti";
 import { Heart, RotateCcw, Flame, Navigation, X } from "lucide-react";
 import { OptionMedia, optionTitle } from "@/components/options/option-card";
 import { PlaceMapEmbed, directionsUrl } from "@/components/options/place-map";
@@ -51,7 +50,9 @@ export function SwipeVoteView() {
     const matches = rows.filter((r) => r.matchAll);
     if (matches.length) {
       celebrated.current = true;
-      confetti({ particleCount: 80, spread: 0.9, origin: { y: 0.65 } });
+      void import("canvas-confetti").then(({ default: confetti }) => {
+        confetti({ particleCount: 80, spread: 0.9, origin: { y: 0.65 } });
+      });
     }
   }, [allDone, closed, rows]);
 

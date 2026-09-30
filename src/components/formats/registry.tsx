@@ -1,18 +1,46 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import type { ComponentType } from "react";
-import { BracketVoteView } from "@/components/formats/bracket/vote-view";
-import { QuickVoteView } from "@/components/formats/quick/vote-view";
-import { RankingVoteView } from "@/components/formats/ranking/vote-view";
-import { RatingVoteView } from "@/components/formats/rating/vote-view";
-import { ScheduleVoteView } from "@/components/formats/schedule/vote-view";
-import { SwipeVoteView } from "@/components/formats/swipe/vote-view";
 import { getFormat } from "@/lib/formats";
 import type { FormatId, Room } from "@/lib/types";
 
+const BracketVoteView = dynamic(
+  () => import("@/components/formats/bracket/vote-view").then((m) => m.BracketVoteView),
+  { ssr: false, loading: () => <FormatSkeleton /> },
+);
+const QuickVoteView = dynamic(
+  () => import("@/components/formats/quick/vote-view").then((m) => m.QuickVoteView),
+  { loading: () => <FormatSkeleton /> },
+);
+const ScheduleVoteView = dynamic(
+  () => import("@/components/formats/schedule/vote-view").then((m) => m.ScheduleVoteView),
+  { loading: () => <FormatSkeleton /> },
+);
+const SwipeVoteView = dynamic(
+  () => import("@/components/formats/swipe/vote-view").then((m) => m.SwipeVoteView),
+  { ssr: false, loading: () => <FormatSkeleton /> },
+);
+const RankingVoteView = dynamic(
+  () => import("@/components/formats/ranking/vote-view").then((m) => m.RankingVoteView),
+  { ssr: false, loading: () => <FormatSkeleton /> },
+);
+const RatingVoteView = dynamic(
+  () => import("@/components/formats/rating/vote-view").then((m) => m.RatingVoteView),
+  { loading: () => <FormatSkeleton /> },
+);
+
+function FormatSkeleton() {
+  return (
+    <div className="mt-4 space-y-3" aria-busy="true" aria-label="Đang tải">
+      <div className="h-28 animate-pulse rounded-[22px] bg-muted" />
+      <div className="h-40 animate-pulse rounded-[22px] bg-muted" />
+    </div>
+  );
+}
+
 type FormatViews = {
   VoteView: ComponentType;
-  /** Narrow single column (lists) vs full width (bracket boards). */
   narrow: (room: Room) => boolean;
 };
 
