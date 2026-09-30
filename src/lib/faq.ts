@@ -8,7 +8,7 @@ export type FaqGroup = {
   items: FaqItem[];
 };
 
-/** 12 câu FAQ — dùng chung cho UI và JSON-LD. */
+/** FAQ — dùng chung cho UI và JSON-LD. */
 export const faqGroups: FaqGroup[] = [
   {
     title: "Bắt đầu",
@@ -70,6 +70,10 @@ export const faqGroups: FaqGroup[] = [
       {
         q: "Xem lại kết quả ở đâu?",
         a: "Vào mục Phòng của tôi để mở lại các phòng đã tham gia. Trang kết quả có mẫu vô địch, toàn bộ sơ đồ và ai vote cặp nào.",
+      },
+      {
+        q: "Phòng và ảnh lưu bao lâu?",
+        a: "Phòng đã chốt hoặc không có hoạt động quá 90 ngày sẽ bị xoá tự động cùng ảnh trên Storage. Chủ phòng cũng có thể xoá sớm trong Phòng của tôi.",
       },
     ],
   },

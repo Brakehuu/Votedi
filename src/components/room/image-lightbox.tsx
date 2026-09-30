@@ -35,6 +35,7 @@ export function ImageLightbox({
   const pinch = useRef<{ dist: number; scale: number } | null>(null);
   const swipe = useRef<{ x: number; y: number } | null>(null);
   const lastTap = useRef(0);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   const nextSnap = `${open}:${startId}`;
   if (nextSnap !== snap) {
@@ -57,15 +58,37 @@ export function ImageLightbox({
     if (!open) return;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const focusables = () =>
+      Array.from(
+        rootRef.current?.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      ).filter((el) => !el.hasAttribute("disabled"));
+    window.setTimeout(() => focusables()[0]?.focus(), 0);
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
       if (event.key === "ArrowRight") go(1);
       if (event.key === "ArrowLeft") go(-1);
+      if (event.key === "Tab" && rootRef.current) {
+        const list = focusables();
+        if (list.length === 0) return;
+        const first = list[0]!;
+        const last = list[list.length - 1]!;
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = prevOverflow;
       window.removeEventListener("keydown", onKey);
+      previouslyFocused?.focus?.();
     };
   }, [go, onClose, open]);
 
@@ -76,6 +99,7 @@ export function ImageLightbox({
 
   return (
     <div
+      ref={rootRef}
       className="fixed inset-0 z-[80] flex flex-col bg-[#071316]/90 p-3 backdrop-blur-xl sm:p-5"
       role="dialog"
       aria-modal

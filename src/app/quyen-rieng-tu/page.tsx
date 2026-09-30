@@ -17,6 +17,11 @@ export default function PrivacyPage() {
           <p>Trong phòng, Vote Đi lưu tên hiển thị, avatar, ảnh mẫu và phiếu bầu. Chỉ thành viên của phòng xem được các phiếu đó.</p>
           <p>Ảnh được lưu để cả nhóm xem và chốt mẫu. Vote Đi không bán dữ liệu và không dùng ảnh của bạn để huấn luyện hay quảng cáo.</p>
           <p>Mật khẩu phòng được băm trước khi lưu, không giữ bản gốc.</p>
+          <p>
+            Phòng không hoạt động quá 90 ngày (đã chốt lâu, hoặc mở mà không có phiếu) sẽ được hệ thống xoá
+            tự động cùng ảnh trong Storage. Bạn có thể xoá phòng sớm hơn trong mục Phòng của tôi nếu bạn là
+            chủ phòng.
+          </p>
         </div>
       </main>
       <SiteFooter />
