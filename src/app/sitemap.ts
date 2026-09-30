@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { listContent } from "@/lib/content";
+import { allTopicCounts, listContent, paginate } from "@/lib/content";
 import { FORMAT_LIST } from "@/lib/formats";
 import { absoluteUrl } from "@/lib/site";
 import { TEMPLATES } from "@/lib/templates";
@@ -55,11 +55,26 @@ export default function sitemap(): MetadataRoute.Sitemap {
     });
   }
 
-  for (const doc of listContent("blog")) {
-    // drafts excluded by listContent
+  const blog = listContent("blog");
+  for (const doc of blog) {
     entries.push({
       url: absoluteUrl(`/blog/${doc.slug}`),
       lastModified: fileDate(doc.filePath),
+    });
+  }
+
+  for (const topic of allTopicCounts("blog")) {
+    entries.push({
+      url: absoluteUrl(`/blog/chu-de/${topic.slug}`),
+      lastModified: now,
+    });
+  }
+
+  const { totalPages } = paginate(blog, 1, 12);
+  for (let n = 2; n <= totalPages; n += 1) {
+    entries.push({
+      url: absoluteUrl(`/blog/trang/${n}`),
+      lastModified: now,
     });
   }
 

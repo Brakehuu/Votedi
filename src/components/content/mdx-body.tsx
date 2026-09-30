@@ -1,33 +1,25 @@
 import { MDXRemote } from "next-mdx-remote/rsc";
-import { TemplateCta, MdxLink } from "@/components/content/mdx-components";
-import { slugifyHeading } from "@/lib/content";
+import { createMdxComponents } from "@/components/content/mdx-components";
+import type { AssetMeta } from "@/lib/content";
+import { SummaryBox } from "@/components/content/article-chrome";
 
-const components = {
-  TemplateCta,
-  a: MdxLink,
-  h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => {
-    const text = String(props.children ?? "");
-    const id = slugifyHeading(text);
-    return (
-      <h2 id={id} {...props}>
-        {props.children}
-      </h2>
-    );
-  },
-  h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => {
-    const text = String(props.children ?? "");
-    const id = slugifyHeading(text);
-    return (
-      <h3 id={id} {...props}>
-        {props.children}
-      </h3>
-    );
-  },
-};
-
-export function MdxBody({ source }: { source: string }) {
+export function MdxBody({
+  source,
+  assetMap = {},
+  summary,
+}: {
+  source: string;
+  assetMap?: Record<string, AssetMeta>;
+  summary?: string | null;
+}) {
+  const components = createMdxComponents(assetMap);
   return (
-    <div className="prose prose-neutral max-w-none dark:prose-invert prose-headings:scroll-mt-24 prose-a:text-primary">
+    <div className="blog-prose">
+      {summary ? (
+        <SummaryBox>
+          <MDXRemote source={summary} components={components} />
+        </SummaryBox>
+      ) : null}
       <MDXRemote source={source} components={components} />
     </div>
   );

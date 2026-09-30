@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SiteFooter } from "@/components/home/footer";
-import { listContent } from "@/lib/content";
+import { BlogCtaBand } from "@/components/content/blog-cta";
+import { BlogSearch } from "@/components/content/blog-search";
+import { allTopicCounts, listContent, topicSlugFromParam } from "@/lib/content";
 import { absoluteUrl } from "@/lib/site";
+import { breadcrumbList, jsonLd } from "@/lib/seo";
 
 export function generateStaticParams() {
-  return listContent("blog").flatMap((p) => (p.tags ?? []).map((tag) => ({ tag })));
+  return allTopicCounts("blog").map((t) => ({ tag: t.slug }));
 }
 
 export async function generateMetadata({
@@ -15,38 +18,74 @@ export async function generateMetadata({
   params: Promise<{ tag: string }>;
 }): Promise<Metadata> {
   const { tag } = await params;
-  const decoded = decodeURIComponent(tag);
+  const topic = topicSlugFromParam(tag);
+  if (!topic) return { title: "Chủ đề" };
   return {
-    title: `Blog · ${decoded}`,
-    description: `Bài viết chủ đề ${decoded} trên Vote Đi.`,
-    alternates: { canonical: absoluteUrl(`/blog/chu-de/${tag}`) },
+    title: `Blog · ${topic.name}`,
+    description: `Bài viết chủ đề ${topic.name} trên Blog Vote Đi — mẹo chốt quyết định cùng nhóm.`,
+    alternates: { canonical: absoluteUrl(`/blog/chu-de/${topic.slug}`) },
   };
 }
 
 export default async function BlogTagPage({ params }: { params: Promise<{ tag: string }> }) {
   const { tag } = await params;
-  const decoded = decodeURIComponent(tag);
-  const posts = listContent("blog").filter((p) => p.tags?.includes(decoded));
-  if (!posts.length) notFound();
+  const topic = topicSlugFromParam(tag);
+  if (!topic) notFound();
+
+  const all = listContent("blog").filter(
+    (p) => p.primaryTopicSlug === topic.slug || p.tags.includes(topic.name),
+  );
+  const topics = allTopicCounts("blog");
+  if (!all.length) notFound();
+
+  const posts = all.map((p) => ({
+    slug: p.slug,
+    title: p.title,
+    description: p.description,
+    date: p.date,
+    readingMinutes: p.readingMinutes,
+    primaryTopic: p.primaryTopic,
+    primaryTopicSlug: p.primaryTopicSlug,
+    cover: p.cover,
+    coverWidth: p.coverWidth,
+    coverHeight: p.coverHeight,
+    generatedCover: p.generatedCover,
+  }));
 
   return (
     <>
-      <main className="mx-auto w-full max-w-3xl px-4 py-10 pb-24">
-        <p className="text-sm font-semibold text-primary">Chủ đề</p>
-        <h1 className="mt-1 text-3xl font-extrabold">{decoded}</h1>
-        <ul className="mt-8 space-y-4">
-          {posts.map((p) => (
-            <li key={p.slug}>
-              <Link href={`/blog/${p.slug}`} className="glass block rounded-[22px] p-5">
-                <b className="text-lg font-extrabold">{p.title}</b>
-                <p className="mt-1 text-sm text-muted-foreground">{p.description}</p>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={jsonLd({
+          "@context": "https://schema.org",
+          ...breadcrumbList([
+            { name: "Trang chủ", path: "/" },
+            { name: "Blog", path: "/blog" },
+            { name: topic.name, path: `/blog/chu-de/${topic.slug}` },
+          ]),
+        })}
+      />
+      <main className="blog-wrap">
+        <header className="blog-hero">
+          <div>
+            <p className="text-sm font-semibold text-primary">Chủ đề</p>
+            <h1>{topic.name}</h1>
+            <p>
+              {all.length} bài ·{" "}
+              <Link href="/blog" className="font-semibold text-primary">
+                Tất cả bài viết
               </Link>
-            </li>
-          ))}
-        </ul>
-        <Link href="/blog" className="mt-6 inline-flex text-sm font-semibold text-primary">
-          ← Tất cả bài
-        </Link>
+            </p>
+          </div>
+        </header>
+
+        <BlogSearch
+          posts={posts}
+          topics={topics}
+          activeTopicSlug={topic.slug}
+          allCount={listContent("blog").length}
+        />
+        <BlogCtaBand />
       </main>
       <SiteFooter />
     </>

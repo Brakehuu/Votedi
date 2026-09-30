@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter } from "@/components/home/footer";
-import { allTags, listContent } from "@/lib/content";
+import { BlogCtaBand } from "@/components/content/blog-cta";
+import { BlogSearch } from "@/components/content/blog-search";
+import { allTopicCounts, listContent, paginate } from "@/lib/content";
 import { absoluteUrl } from "@/lib/site";
+import { breadcrumbList, jsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Blog Vote Đi",
@@ -10,63 +13,61 @@ export const metadata: Metadata = {
   alternates: { canonical: absoluteUrl("/blog") },
 };
 
-export default async function BlogIndexPage({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const sp = await searchParams;
-  const tag = typeof sp["chu-de"] === "string" ? sp["chu-de"] : undefined;
+const PER_PAGE = 12;
+
+export default function BlogIndexPage() {
   const all = listContent("blog");
-  const tags = allTags("blog");
-  const posts = tag ? all.filter((p) => p.tags?.includes(tag)) : all;
+  const topics = allTopicCounts("blog");
+  const { totalPages } = paginate(all, 1, PER_PAGE);
+  const posts = all.map((p) => ({
+    slug: p.slug,
+    title: p.title,
+    description: p.description,
+    date: p.date,
+    readingMinutes: p.readingMinutes,
+    primaryTopic: p.primaryTopic,
+    primaryTopicSlug: p.primaryTopicSlug,
+    cover: p.cover,
+    coverWidth: p.coverWidth,
+    coverHeight: p.coverHeight,
+    generatedCover: p.generatedCover,
+  }));
 
   return (
     <>
-      <main className="mx-auto w-full max-w-3xl px-4 py-10 pb-24">
-        <h1 className="text-3xl font-extrabold tracking-tight">Blog</h1>
-        <p className="mt-2 text-muted-foreground">Góc chia sẻ cách chốt quyết định cùng nhóm.</p>
-        {tags.length ? (
-          <div className="mt-5 flex flex-wrap gap-2">
-            <Link
-              href="/blog"
-              className={`rounded-full border px-3 py-1.5 text-sm font-semibold ${!tag ? "border-primary bg-primary-soft text-primary" : "border-[var(--line)]"}`}
-            >
-              Tất cả
-            </Link>
-            {tags.map((t) => (
-              <Link
-                key={t}
-                href={`/blog/chu-de/${encodeURIComponent(t)}`}
-                className={`rounded-full border px-3 py-1.5 text-sm font-semibold ${tag === t ? "border-primary bg-primary-soft text-primary" : "border-[var(--line)]"}`}
-              >
-                {t}
-              </Link>
-            ))}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={jsonLd({
+          "@context": "https://schema.org",
+          ...breadcrumbList([
+            { name: "Trang chủ", path: "/" },
+            { name: "Blog", path: "/blog" },
+          ]),
+        })}
+      />
+      <main className="blog-wrap">
+        <header className="blog-hero">
+          <div>
+            <p className="text-sm font-semibold text-primary">Blog</p>
+            <h1>
+              Chốt cùng nhóm, <em>không cãi nhau</em>
+            </h1>
+            <p>Mẹo chọn ngày, áo lớp, quán ăn và cách tổ chức vote cho nhóm Zalo.</p>
           </div>
+        </header>
+
+        <BlogSearch posts={posts.slice(0, PER_PAGE)} topics={topics} allCount={all.length} />
+
+        {totalPages > 1 ? (
+          <nav className="blog-pager" aria-label="Phân trang">
+            <span className="text-sm text-muted-foreground">Trang 1 / {totalPages}</span>
+            <Link href="/blog/trang/2" rel="next" className="btn btn-g">
+              Trang sau
+            </Link>
+          </nav>
         ) : null}
-        <ul className="mt-8 space-y-4">
-          {posts.map((p) => (
-            <li key={p.slug}>
-              <Link href={`/blog/${p.slug}`} className="glass block rounded-[22px] p-5">
-                <b className="text-lg font-extrabold">{p.title}</b>
-                <p className="mt-1 text-sm text-muted-foreground">{p.description}</p>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {p.readingMinutes} phút đọc · cập nhật {p.updated ?? p.date}
-                </p>
-              </Link>
-            </li>
-          ))}
-        </ul>
-        {!posts.length ? (
-          <p className="mt-6 text-sm text-muted-foreground">
-            Bài mới đang soạn. Xem{" "}
-            <Link href="/huong-dan" className="font-semibold text-primary">
-              Hướng dẫn
-            </Link>{" "}
-            để bắt đầu ngay.
-          </p>
-        ) : null}
+
+        <BlogCtaBand />
       </main>
       <SiteFooter />
     </>

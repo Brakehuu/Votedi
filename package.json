@@ -3,14 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "tsx scripts/sync-blog-assets.ts",
     "dev": "next dev",
+    "prebuild": "tsx scripts/sync-blog-assets.ts && tsx scripts/blog-check.ts",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test src/lib/places/*.test.ts src/lib/schedule.test.ts src/lib/phase4.test.ts",
+    "test": "tsx --test src/lib/places/*.test.ts src/lib/schedule.test.ts src/lib/phase4.test.ts src/lib/content/*.test.ts",
     "test:e2e": "playwright test",
     "analyze": "next build",
-    "db:check": "tsx --env-file=.env.local scripts/db-check.ts"
+    "db:check": "tsx --env-file=.env.local scripts/db-check.ts",
+    "blog:new": "tsx scripts/blog-new.ts",
+    "blog:check": "tsx scripts/blog-check.ts",
+    "blog:sync": "tsx scripts/sync-blog-assets.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -25,6 +30,7 @@
     "class-variance-authority": "^0.7.1",
     "cn": "^0.4.0",
     "gray-matter": "^4.0.3",
+    "image-size": "^2.0.4",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.48.0",
     "next": "16.3.6",
@@ -47,6 +53,7 @@
     "@tailwindcss/postcss": "^4",
     "@types/canvas-confetti": "^1.9.0",
     "@types/leaflet": "^1.9.22",
+    "@types/mdast": "^4.0.4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

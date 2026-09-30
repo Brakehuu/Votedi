@@ -14,22 +14,32 @@ export default function HuongDanIndexPage() {
   const posts = listContent("huong-dan");
   return (
     <>
-      <main className="mx-auto w-full max-w-3xl px-4 py-10 pb-24">
-        <h1 className="text-3xl font-extrabold tracking-tight">Hướng dẫn</h1>
-        <p className="mt-2 text-muted-foreground">Bắt đầu nhanh với Vote Đi — ngắn gọn, làm được ngay.</p>
-        <ul className="mt-8 space-y-3">
+      <main className="blog-wrap">
+        <header className="blog-hero">
+          <div>
+            <p className="text-sm font-semibold text-primary">Hướng dẫn</p>
+            <h1>
+              Làm được <em>ngay trên điện thoại</em>
+            </h1>
+            <p>Tạo phòng, mời bạn, dán Maps và chọn kiểu vote — ngắn gọn, làm theo từng bước.</p>
+          </div>
+        </header>
+        <div className="blog-cards" style={{ marginTop: 8 }}>
           {posts.map((p) => (
-            <li key={p.slug}>
-              <Link href={`/huong-dan/${p.slug}`} className="glass flex items-start justify-between gap-3 rounded-[20px] p-4">
-                <span>
-                  <b className="block font-extrabold">{p.title}</b>
-                  <span className="mt-1 block text-sm text-muted-foreground">{p.description}</span>
-                </span>
-                <span className="shrink-0 text-xs font-semibold text-muted-foreground">{p.readingMinutes} phút</span>
-              </Link>
-            </li>
+            <Link key={p.slug} href={`/huong-dan/${p.slug}`} className="blog-card">
+              <div className="blog-card-bd">
+                <span className="chip">Hướng dẫn</span>
+                <h3>{p.title}</h3>
+                <p>{p.description}</p>
+                <div className="blog-meta">
+                  <span>{p.readingMinutes} phút đọc</span>
+                  <i />
+                  <span>{p.updated}</span>
+                </div>
+              </div>
+            </Link>
           ))}
-        </ul>
+        </div>
       </main>
       <SiteFooter />
     </>

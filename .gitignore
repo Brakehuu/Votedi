@@ -34,6 +34,10 @@ yarn-error.log*
 .env*
 !.env.example
 
+# generated blog assets (synced from content/*/slug/)
+/public/blog/
+/public/huong-dan/
+
 # vercel
 .vercel
 
