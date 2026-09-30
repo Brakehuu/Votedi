@@ -278,7 +278,7 @@ export function ScheduleVoteView() {
           : "Theo buổi";
 
   return (
-    <div className="pb-28">
+    <div className="sch-root">
       <section className="glass mt-2 rounded-[24px] p-[18px]">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--soft,#E3F6F5)] px-2.5 py-1 text-[13px] font-semibold text-[var(--jade-d,#0B7F7A)]">
           Chọn lịch rảnh · {modeTag}
@@ -484,6 +484,7 @@ function BestPicks({
   n,
   onPick,
   ratioLabel,
+  title = "Buổi đẹp nhất",
 }: {
   ranked: RankedRow[];
   anonymous: boolean;
@@ -491,13 +492,14 @@ function BestPicks({
   n: number;
   onPick?: (slotId: string) => void;
   ratioLabel: string;
+  title?: string;
 }) {
   if (!ranked.length) return null;
   return (
     <>
-      <div className="mt-[22px] mb-2.5 flex items-baseline justify-between px-0.5">
-        <h2 className="text-[17px] font-extrabold">Buổi đẹp nhất</h2>
-        <small className="text-[13px] text-muted-foreground">Rảnh = 1 · Có thể = ½</small>
+      <div className="mt-[22px] mb-2.5 flex items-baseline justify-between gap-2 px-0.5">
+        <h2 className="min-w-0 text-[17px] font-extrabold">{title}</h2>
+        <small className="shrink-0 text-[13px] text-muted-foreground">Rảnh = 1 · Có thể = ½</small>
       </div>
       <div className="grid gap-2.5">
         {ranked.map((row, i) => (
@@ -505,7 +507,7 @@ function BestPicks({
             key={row.slot.id}
             type="button"
             className={cn(
-              "grid w-full grid-cols-[auto_1fr_auto] items-center gap-3.5 rounded-[20px] border-[1.5px] border-[var(--line,#D8E6E6)] bg-white p-3.5 text-left",
+              "sch-pick grid w-full min-w-0 grid-cols-[auto_1fr_auto] items-center gap-3.5 rounded-[20px] border-[1.5px] border-[var(--line,#D8E6E6)] bg-white p-3.5 text-left",
               i === 0 && "border-transparent shadow-[0_0_0_4px_rgba(14,165,164,.1)]",
             )}
             style={
@@ -521,18 +523,18 @@ function BestPicks({
           >
             <span
               className={cn(
-                "grid size-10 place-items-center rounded-[13px] text-[15px] font-extrabold",
+                "grid size-10 shrink-0 place-items-center rounded-[13px] text-[15px] font-extrabold",
                 i === 0 ? "bg-[linear-gradient(135deg,#19C9A7,#0891B2)] text-white" : "bg-[#EEF4F4] text-muted-foreground",
               )}
             >
               {i + 1}
             </span>
-            <span>
-              <b className="block text-[15.5px] font-bold leading-snug">{slotLabel(row.slot)}</b>
+            <span className="min-w-0">
+              <b className="block truncate text-[15.5px] font-bold leading-snug">{slotLabel(row.slot)}</b>
               <span className="mt-0.5 block text-[13px] text-muted-foreground">
                 {row.yesCount} rảnh{row.maybeCount ? ` · ${row.maybeCount} có thể` : ""}
               </span>
-              <span className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span className="mt-1.5 flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
                 {row.miss.length ? (
                   <>
                     Không đi được:{" "}
@@ -547,7 +549,7 @@ function BestPicks({
                 )}
               </span>
             </span>
-            <span className="text-right">
+            <span className="shrink-0 text-right">
               <b className="text-xl font-extrabold tabular-nums">
                 {row.yesCount}/{n}
               </b>
@@ -695,14 +697,7 @@ function GridView({
             <h2 className="text-[17px] font-extrabold">Trả lời nhanh</h2>
             <small className="text-[13px] text-muted-foreground">Phím 1 · 2 · 3</small>
           </div>
-          <section
-            ref={deckRef as React.RefObject<HTMLElement>}
-            className="relative overflow-hidden rounded-[28px] border-[1.5px] border-transparent bg-white p-5 shadow-[0_24px_50px_-30px_rgba(8,80,90,.45)]"
-            style={{
-              background:
-                "linear-gradient(#fff,#fff) padding-box, linear-gradient(135deg,rgba(25,201,167,.55),rgba(8,145,178,.45)) border-box",
-            }}
-          >
+          <section ref={deckRef as React.RefObject<HTMLElement>} className="sch-deck" aria-live="polite">
             {!unanswered.length ? (
               <div className="py-2 text-center">
                 <b className="block text-[22px] font-extrabold">Xong cả {keys.length} khung 🎉</b>
@@ -738,7 +733,7 @@ function GridView({
                 </div>
                 <div className="mt-4">
                   <div className="text-[15px] font-semibold text-muted-foreground">{formatDayLong(current.slot_date)}</div>
-                  <div className="mt-0.5 text-[28px] font-extrabold tracking-tight leading-tight">
+                  <div className="sch-q-part mt-0.5 text-[30px] font-extrabold tracking-tight leading-tight">
                     {current.part
                       ? `Buổi ${DAY_PARTS.find((p) => p.id === current.part)?.label.toLowerCase()}`
                       : current.start_time
@@ -754,7 +749,7 @@ function GridView({
                 <div className="mt-5 grid grid-cols-[1fr_1fr_1.25fr] gap-2">
                   <button
                     type="button"
-                    className="flex h-16 flex-col items-center justify-center gap-0.5 rounded-[18px] border-[1.5px] border-[var(--line)] bg-[#F4F7F7] text-[13.5px] font-bold text-[#4E6166] active:scale-95"
+                    className="sch-ans flex h-16 flex-col items-center justify-center gap-0.5 rounded-[18px] border-[1.5px] border-[var(--line)] bg-[#F4F7F7] text-[13.5px] font-bold text-[#4E6166] active:scale-95"
                     onClick={() => answer("no")}
                   >
                     <NoIcon className="size-5" />
@@ -763,7 +758,7 @@ function GridView({
                   </button>
                   <button
                     type="button"
-                    className="flex h-16 flex-col items-center justify-center gap-0.5 rounded-[18px] border-[1.5px] border-[#F6D08A] bg-[#FFF7E8] text-[13.5px] font-bold text-[#8A5A00] active:scale-95"
+                    className="sch-ans flex h-16 flex-col items-center justify-center gap-0.5 rounded-[18px] border-[1.5px] border-[#F6D08A] bg-[#FFF7E8] text-[13.5px] font-bold text-[#8A5A00] active:scale-95"
                     onClick={() => answer("maybe")}
                   >
                     <MaybeIcon className="size-5" />
@@ -772,7 +767,7 @@ function GridView({
                   </button>
                   <button
                     type="button"
-                    className="flex h-16 flex-col items-center justify-center gap-0.5 rounded-[18px] bg-[linear-gradient(135deg,#19C9A7,#0891B2)] text-[13.5px] font-bold text-white shadow-[0_12px_26px_-12px_rgba(8,145,178,.7)] active:scale-95"
+                    className="sch-ans flex h-16 flex-col items-center justify-center gap-0.5 rounded-[18px] bg-[linear-gradient(135deg,#19C9A7,#0891B2)] text-[13.5px] font-bold text-white shadow-[0_12px_26px_-12px_rgba(8,145,178,.7)] active:scale-95"
                     onClick={() => answer("yes")}
                   >
                     <YesIcon className="size-5" />
@@ -793,6 +788,7 @@ function GridView({
           memberById={memberById}
           n={n}
           ratioLabel="người rảnh"
+          title={mode === "days" ? "Ngày đẹp nhất" : mode === "time_slots" ? "Khung đẹp nhất" : "Buổi đẹp nhất"}
           onPick={(id) => setSel(id)}
         />
       ) : null}
@@ -801,8 +797,8 @@ function GridView({
         <h2 className="text-[17px] font-extrabold">Lịch cả nhóm</h2>
         <small className="text-[13px] text-muted-foreground">Chạm ô để sửa</small>
       </div>
-      <section className="glass rounded-[24px] p-3.5">
-        <div className="-mx-3.5 overflow-x-auto px-3.5 pb-1">
+      <section className="glass overflow-hidden rounded-[24px] p-3.5">
+        <div className="sch-board-scroll">
           <div
             className="grid w-max min-w-full gap-1.5"
             style={{ gridTemplateColumns: `64px repeat(${dates.length}, auto)` }}
@@ -842,7 +838,7 @@ function GridView({
                       key={slot.id}
                       type="button"
                       className={cn(
-                        "relative flex h-[60px] w-16 flex-col items-center justify-center rounded-[14px] border-[1.5px] border-[var(--line)] tabular-nums active:scale-95",
+                        "sch-cell relative flex h-[60px] w-16 flex-col items-center justify-center rounded-[14px] border-[1.5px] border-[var(--line)] tabular-nums active:scale-95",
                         slot.id === sel && "outline outline-[3px] outline-[#0C1B20] outline-offset-1",
                         slot.id === topId && talliesVisible && "before:absolute before:bottom-0.5 before:left-1 before:text-[10px] before:content-['★'] before:text-[#FFD28A]",
                       )}
@@ -934,7 +930,7 @@ function GridView({
       </section>
 
       {!closed ? (
-        <div className="glass fixed inset-x-3 bottom-3 z-40 mx-auto flex max-w-[736px] items-center gap-3 rounded-[22px] p-2.5 pl-3.5">
+        <div className="sch-dock glass">
           <svg className="size-10 shrink-0" viewBox="0 0 40 40">
             <circle cx="20" cy="20" r="16" fill="none" stroke="#E3EDED" strokeWidth="4" />
             <circle
@@ -951,7 +947,7 @@ function GridView({
             />
           </svg>
           <div className="min-w-0 flex-1 text-sm leading-snug">
-            <b className="block font-bold">
+            <b className="block truncate font-bold">
               {done === keys.length ? "Bạn đã trả lời hết" : `Bạn đã trả lời ${done}/${keys.length} khung`}
             </b>
             <span className="text-[12.5px] text-muted-foreground">Lưu tự động · đổi được tới khi chốt</span>
@@ -959,7 +955,7 @@ function GridView({
           {done < keys.length ? (
             <button
               type="button"
-              className="inline-flex h-11 items-center rounded-full bg-[linear-gradient(135deg,#19C9A7,#0891B2)] px-4 text-[14.5px] font-semibold text-white"
+              className="inline-flex h-11 shrink-0 items-center rounded-full bg-[linear-gradient(135deg,#19C9A7,#0891B2)] px-4 text-[14.5px] font-semibold text-white"
               onClick={() => {
                 const nIdx = nextUnanswered(qi);
                 if (nIdx >= 0) setQi(nIdx);
@@ -1159,13 +1155,17 @@ function TripView({
           ))}
         </div>
         <div
-          className="mt-2 grid grid-cols-7 gap-1.5 select-none"
-          style={{ touchAction: "none" }}
+          className="sch-trip-grid mt-2 grid grid-cols-7 gap-1.5"
           onPointerDown={(e) => {
             const el = (e.target as HTMLElement).closest("[data-d]") as HTMLElement | null;
             if (!el?.dataset.d) return;
+            e.preventDefault();
             painting.current = true;
-            (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+            try {
+              (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+            } catch {
+              /* ignore */
+            }
             paint(el.dataset.d);
           }}
           onPointerMove={(e) => {
@@ -1199,12 +1199,14 @@ function TripView({
             const mine = getMine(slot.id);
             const inw = win && iso >= win.start && iso <= win.end;
             return (
-              <button
+              <div
                 key={iso}
-                type="button"
+                role="button"
+                tabIndex={0}
                 data-d={iso}
+                aria-label={formatDayShort(iso)}
                 className={cn(
-                  "relative flex aspect-square flex-col items-center justify-center gap-0.5 rounded-[14px] border-[1.5px] border-[var(--line)] text-[15px] font-bold tabular-nums",
+                  "sch-trip-cell relative flex aspect-square flex-col items-center justify-center gap-0.5 rounded-[14px] border-[1.5px] border-[var(--line)] text-[15px] font-bold tabular-nums",
                   inw && "z-[1] outline outline-[3px] outline-[#0C1B20] outline-offset-1",
                   iso === focus && "scale-95",
                 )}
@@ -1213,12 +1215,18 @@ function TripView({
                   color: dark ? "#fff" : undefined,
                   borderColor: dark ? "transparent" : undefined,
                 }}
-                onClick={() => setFocus(iso)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setFocus(iso);
+                    paint(iso);
+                  }
+                }}
               >
                 {mine ? (
                   <span
                     className={cn(
-                      "absolute right-1 top-1 grid size-4 place-items-center rounded-[5px] text-white",
+                      "pointer-events-none absolute right-1 top-1 grid size-4 place-items-center rounded-[5px] text-white",
                       mine === "yes" && "bg-[#0EA5A4]",
                       mine === "maybe" && "bg-[#F5A524]",
                       mine === "no" && "bg-[#6B7F84]",
@@ -1227,9 +1235,13 @@ function TripView({
                     {mine === "yes" ? <YesIcon className="size-2.5" /> : mine === "maybe" ? <MaybeIcon className="size-2.5" /> : <NoIcon className="size-2.5" />}
                   </span>
                 ) : null}
-                {Number(iso.slice(8))}
-                {talliesVisible ? <span className="text-[10.5px] font-bold opacity-85">{yes}/{n}</span> : null}
-              </button>
+                <span className="pointer-events-none">{Number(iso.slice(8))}</span>
+                {talliesVisible ? (
+                  <span className="pointer-events-none text-[10.5px] font-bold opacity-85">
+                    {yes}/{n}
+                  </span>
+                ) : null}
+              </div>
             );
           })}
         </div>
@@ -1265,7 +1277,7 @@ function TripView({
       </div>
 
       {!closed ? (
-        <div className="glass fixed inset-x-3 bottom-3 z-40 mx-auto flex max-w-[736px] gap-1.5 rounded-[22px] p-2.5">
+        <div className="sch-dock glass gap-1.5">
           {(
             [
               ["yes", "Rảnh", YesIcon],
