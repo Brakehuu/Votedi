@@ -4,7 +4,7 @@ import Script from "next/script";
 import { Be_Vietnam_Pro } from "next/font/google";
 import { Mesh, SiteHeader } from "@/components/site-header";
 import { Providers } from "@/components/providers";
-import { faqs } from "@/lib/faq";
+import { organizationGraph, websiteGraph, jsonLd } from "@/lib/seo";
 import { siteDescription, siteTitle, siteUrl } from "@/lib/site";
 import "./globals.css";
 
@@ -19,20 +19,19 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
     default: siteTitle,
-    template: "%s · Vote Đi",
+    template: "%s | Vote Đi",
   },
   description: siteDescription,
   keywords: [
-    "bình chọn mẫu áo",
-    "vote logo",
     "bình chọn online",
-    "đấu loại trực tiếp",
-    "world cup",
-    "chọn mẫu nhóm",
+    "tạo vote nhóm",
+    "vote áo lớp",
+    "chọn lịch rảnh",
     "Vote Đi",
   ],
   applicationName: "Vote Đi",
   authors: [{ name: "Vote Đi" }],
+  alternates: { canonical: siteUrl },
   openGraph: {
     type: "website",
     locale: "vi_VN",
@@ -60,30 +59,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           id="votedi-ld-json"
           type="application/ld+json"
           strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@graph": [
-                {
-                  "@type": "WebApplication",
-                  name: "Vote Đi",
-                  applicationCategory: "LifestyleApplication",
-                  operatingSystem: "Web",
-                  offers: { "@type": "Offer", price: "0", priceCurrency: "VND" },
-                  description: siteDescription,
-                  inLanguage: "vi",
-                },
-                {
-                  "@type": "FAQPage",
-                  mainEntity: faqs.map((item) => ({
-                    "@type": "Question",
-                    name: item.q,
-                    acceptedAnswer: { "@type": "Answer", text: item.a },
-                  })),
-                },
-              ],
-            }),
-          }}
+          dangerouslySetInnerHTML={jsonLd({
+            "@context": "https://schema.org",
+            "@graph": [organizationGraph(), websiteGraph()],
+          })}
         />
         <Providers>
           <Mesh />

@@ -26,6 +26,7 @@ import {
   scheduleSettingsPayload,
   type ScheduleSettingsValue,
 } from "@/components/formats/schedule/settings-fields";
+import { WizardStepFormats } from "@/components/create-room/wizard-step-formats";
 import { buildSlotDrafts } from "@/lib/schedule";
 import { AvatarPicker } from "@/components/room/avatar-picker";
 import { SharePanel } from "@/components/share-panel";
@@ -34,16 +35,15 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { AVATAR_EMOJIS } from "@/lib/emojis";
 import { reportError } from "@/lib/errors";
-import { FORMATS, FORMAT_LIST } from "@/lib/formats";
+import { FORMATS } from "@/lib/formats";
 import { prepareItemImage } from "@/lib/images";
 import { ensureUser, uploadPublicImage } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/client";
-import { OTHER_TEMPLATES, PLACE_TEMPLATES, type RoomTemplate } from "@/lib/templates";
+import type { RoomTemplate } from "@/lib/templates";
 import type { FormatId, RoomMode } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const STEPS = ["Chốt gì", "Nội dung", "Cài đặt", "Bạn", "Chia sẻ"];
-const WIZARD_FORMATS = FORMAT_LIST.filter((format) => format.available);
 const IDENTITY_KEY = "votedi:identity";
 
 const NAME_PLACEHOLDER: Partial<Record<FormatId, string>> = {
@@ -81,21 +81,49 @@ function missingRpc(error: unknown) {
 export function CreateRoomWizard({
   initialFormat,
   initialMode,
+  initialTemplate = null,
 }: {
   initialFormat: FormatId | null;
   initialMode: RoomMode | null;
+  initialTemplate?: RoomTemplate | null;
 }) {
-  const [step, setStep] = useState(initialFormat ? 1 : 0);
-  const [format, setFormat] = useState<FormatId | null>(initialFormat);
-  const [name, setName] = useState("");
+  const boot = initialTemplate;
+  const [step, setStep] = useState(boot || initialFormat ? 1 : 0);
+  const [format, setFormat] = useState<FormatId | null>((boot?.format as FormatId | undefined) ?? initialFormat);
+  const [name, setName] = useState(boot?.h1 ?? "");
   const [description, setDescription] = useState("");
-  const [options, setOptions] = useState<OptionDraft[]>([]);
+  const [options, setOptions] = useState<OptionDraft[]>(() =>
+    (boot?.suggestedOptions ?? []).map((title) => ({
+      key: crypto.randomUUID(),
+      type: "text" as const,
+      title,
+      emoji: null as string | null,
+    })),
+  );
   const [bracket, setBracket] = useState<BracketSettingsValue>({
     ...DEFAULT_BRACKET_SETTINGS,
-    mode: initialMode ?? DEFAULT_BRACKET_SETTINGS.mode,
+    mode: boot?.mode ?? initialMode ?? DEFAULT_BRACKET_SETTINGS.mode,
   });
-  const [quick, setQuick] = useState<QuickSettingsValue>(DEFAULT_QUICK_SETTINGS);
-  const [schedule, setSchedule] = useState<ScheduleSettingsValue>(DEFAULT_SCHEDULE_SETTINGS);
+  const [quick, setQuick] = useState<QuickSettingsValue>(() =>
+    boot
+      ? {
+          ...DEFAULT_QUICK_SETTINGS,
+          maxChoices: boot.defaultSettings.max_choices ?? 1,
+          optionKind: boot.optionKind === "place" ? "place" : "any",
+          allowMemberOptions: boot.format === "swipe" || boot.format === "quick",
+        }
+      : DEFAULT_QUICK_SETTINGS,
+  );
+  const [schedule, setSchedule] = useState<ScheduleSettingsValue>(() => {
+    if (!boot || boot.format !== "schedule") return DEFAULT_SCHEDULE_SETTINGS;
+    return {
+      ...DEFAULT_SCHEDULE_SETTINGS,
+      mode: boot.defaultSettings.schedule_mode ?? "day_parts",
+      tripLength: boot.defaultSettings.trip_length ?? 3,
+      dayParts: boot.defaultSettings.day_parts ?? DEFAULT_SCHEDULE_SETTINGS.dayParts,
+      timeSlots: boot.defaultSettings.time_slots ?? DEFAULT_SCHEDULE_SETTINGS.timeSlots,
+    };
+  });
   const [usePassword, setUsePassword] = useState(false);
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -106,7 +134,7 @@ export function CreateRoomWizard({
   const [created, setCreated] = useState<CreatedRoom | null>(null);
   const [optionsSaved, setOptionsSaved] = useState(false);
   const [slotsSaved, setSlotsSaved] = useState(false);
-  const [template, setTemplate] = useState<RoomTemplate | null>(null);
+  const [template, setTemplate] = useState<RoomTemplate | null>(boot);
 
   const def = format ? FORMATS[format] : null;
   const placeMode = quick.optionKind === "place" || template?.optionKind === "place";
@@ -131,6 +159,21 @@ export function CreateRoomWizard({
       optionKind: item.optionKind === "place" ? "place" : "any",
       allowMemberOptions: item.format === "swipe" || item.format === "quick",
     });
+    if (item.format === "bracket") {
+      setBracket({
+        ...DEFAULT_BRACKET_SETTINGS,
+        mode: item.mode ?? "qualify_knockout",
+      });
+    }
+    if (item.format === "schedule") {
+      setSchedule({
+        ...DEFAULT_SCHEDULE_SETTINGS,
+        mode: item.defaultSettings.schedule_mode ?? "day_parts",
+        tripLength: item.defaultSettings.trip_length ?? 3,
+        dayParts: item.defaultSettings.day_parts ?? DEFAULT_SCHEDULE_SETTINGS.dayParts,
+        timeSlots: item.defaultSettings.time_slots ?? DEFAULT_SCHEDULE_SETTINGS.timeSlots,
+      });
+    }
     setOptions(
       item.suggestedOptions.map((title) => ({
         key: crypto.randomUUID(),
@@ -390,80 +433,10 @@ export function CreateRoomWizard({
       </div>
 
       {step === 0 ? (
-        <section className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-extrabold tracking-tight">Bạn muốn chốt gì?</h1>
-            <p className="mt-1 text-muted-foreground">Chọn mẫu có sẵn hoặc kiểu vote.</p>
-          </div>
-
-          <div className="space-y-3">
-            <h2 className="text-sm font-extrabold tracking-wide text-primary uppercase">Chọn địa điểm</h2>
-            <div className="fmt-grid">
-              {PLACE_TEMPLATES.map((item) => (
-                <button
-                  key={item.slug}
-                  type="button"
-                  className="fmt-card glass"
-                  onClick={() => pickTemplate(item)}
-                >
-                  <span className="fmt-ic text-2xl" aria-hidden>
-                    {item.emoji}
-                  </span>
-                  <span className="min-w-0">
-                    <b>{item.title}</b>
-                    <span className="d">{item.intro}</span>
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <h2 className="text-sm font-extrabold tracking-wide text-muted-foreground uppercase">Mẫu phổ biến</h2>
-            <div className="fmt-grid">
-              {OTHER_TEMPLATES.map((item) => (
-                <button
-                  key={item.slug}
-                  type="button"
-                  className="fmt-card glass"
-                  onClick={() => pickTemplate(item)}
-                >
-                  <span className="fmt-ic text-2xl" aria-hidden>
-                    {item.emoji}
-                  </span>
-                  <span className="min-w-0">
-                    <b>{item.title}</b>
-                    <span className="d">{item.intro}</span>
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <h2 className="text-sm font-extrabold tracking-wide text-muted-foreground uppercase">Kiểu vote khác</h2>
-            <div className="fmt-grid">
-              {WIZARD_FORMATS.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  className={cn("fmt-card glass", format === item.id && !template && "on")}
-                  aria-pressed={format === item.id && !template}
-                  onClick={() => pickFormat(item.id)}
-                >
-                  <span className="fmt-ic">
-                    <item.icon aria-hidden />
-                  </span>
-                  <span className="min-w-0">
-                    <b>{item.name}</b>
-                    <span className="d">{item.description}</span>
-                    <span className="u">Dùng cho: {item.useFor}</span>
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </section>
+        <WizardStepFormats
+          onPickTemplate={pickTemplate}
+          onPickFormat={(id) => pickFormat(id as FormatId)}
+        />
       ) : null}
 
       {step === 1 && def ? (

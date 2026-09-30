@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { FaqSection } from "@/components/home/faq-section";
 import { FeaturesSection } from "@/components/home/features-section";
 import { HomeCta } from "@/components/home/home-cta";
@@ -7,6 +8,13 @@ import { ModesSection } from "@/components/home/modes-section";
 import { SiteFooter } from "@/components/home/footer";
 import { StepsSection } from "@/components/home/steps-section";
 import { UsesMarquee } from "@/components/home/uses-marquee";
+import { siteTitle, siteDescription, absoluteUrl } from "@/lib/site";
+
+export const metadata: Metadata = {
+  title: { absolute: siteTitle },
+  description: siteDescription,
+  alternates: { canonical: absoluteUrl("/") },
+};
 
 export default function HomePage() {
   return (

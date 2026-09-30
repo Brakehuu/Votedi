@@ -54,6 +54,20 @@ function asError(error: unknown): ErrorLike {
   return error as ErrorLike;
 }
 
+/** Rút tên hàm từ thông báo PostgREST / Postgres. */
+export function extractMissingRpcName(raw: string): string | null {
+  const patterns = [
+    /Could not find the function\s+(?:public\.)?([a-zA-Z0-9_]+)/i,
+    /function\s+(?:public\.)?([a-zA-Z0-9_]+)\s*\(/i,
+    /rpc\s+['`]([a-zA-Z0-9_]+)['`]/i,
+  ];
+  for (const re of patterns) {
+    const m = raw.match(re);
+    if (m?.[1]) return m[1];
+  }
+  return null;
+}
+
 /** Dịch mã quen thuộc; lỗi lạ giữ nguyên message (+ code). */
 export function errorMessage(error: unknown): string {
   const err = asError(error);
@@ -61,13 +75,23 @@ export function errorMessage(error: unknown): string {
   const code = err.code ?? "";
 
   for (const [key, text] of Object.entries(MESSAGES)) {
-    if (raw.includes(key) || code === key) return text;
+    if (raw.includes(key) || code === key) {
+      if (key === "PGRST202" || code === "PGRST202") {
+        const fn = extractMissingRpcName(raw);
+        if (fn) return `Chưa có hàm “${fn}” trên Supabase. Chạy migration có hàm này (xem npm run db:check) rồi thử lại.`;
+      }
+      return text;
+    }
   }
   if (/anonymous/i.test(raw)) {
     return "Hãy bật Anonymous sign-in trong Supabase rồi tải lại trang.";
   }
-  if (/Failed to find|Could not find the function|schema cache/i.test(raw)) {
-    return `Chưa có RPC trên server (schema cache). Chạy các migration còn thiếu (mới nhất: 0008_formats_foundation.sql) rồi thử lại. Chi tiết: ${raw}${code ? ` · ${code}` : ""}`;
+  if (/Failed to find|Could not find the function|schema cache/i.test(raw) || code === "PGRST202") {
+    const fn = extractMissingRpcName(raw);
+    if (fn) {
+      return `Chưa có hàm “${fn}” trên Supabase. Chạy migration tương ứng (npm run db:check) rồi thử lại.`;
+    }
+    return `Chưa có RPC trên server (schema cache). Chạy các migration còn thiếu rồi thử lại. Chi tiết: ${raw}${code ? ` · ${code}` : ""}`;
   }
   if (/Failed to fetch|NetworkError|network/i.test(raw)) {
     return "Mất mạng. Kiểm tra kết nối rồi thử lại.";

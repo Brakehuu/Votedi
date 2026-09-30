@@ -2,7 +2,14 @@ export const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:300
 
 export const siteName = "Vote Đi";
 
-export const siteTitle = "Vote Đi – Bình chọn mẫu áo, logo online kiểu World Cup";
+/** Title trang chủ (metadata default). */
+export const siteTitle = "Vote Đi – Tạo bình chọn online miễn phí cho nhóm";
 
 export const siteDescription =
-  "Tạo phòng bình chọn mẫu áo, logo, sản phẩm cho cả nhóm. Vòng loại, bốc thăm nhánh, loại trực tiếp như World Cup. Miễn phí, không cần đăng ký.";
+  "Tạo bình chọn online miễn phí cho nhóm: mẫu áo, quán ăn, lịch rảnh, quẹt chọn. Không cần tài khoản, gửi link Zalo là vote được.";
+
+export const absoluteUrl = (path = "/") => {
+  const base = siteUrl.replace(/\/$/, "");
+  const p = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${p === "/" ? "/" : p}`;
+};
