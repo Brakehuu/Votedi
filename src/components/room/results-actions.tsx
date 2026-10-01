@@ -1,36 +1,48 @@
 "use client";
 
 import { useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { SharePanel } from "@/components/share-panel";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { downloadOrShareResultsImage, resultsShareImageUrl } from "@/components/room/share-image-preview";
 
-export function ResultsActions({ slug, roomName }: { slug: string; roomName: string }) {
+export function ResultsActions({
+  slug,
+  roomName,
+  imageVersion,
+}: {
+  slug: string;
+  roomName: string;
+  imageVersion?: string | number | null;
+}) {
   const [open, setOpen] = useState(false);
-
-  async function download() {
-    try {
-      const res = await fetch(`/p/${slug}/ket-qua/opengraph-image`);
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `vote-di-${slug}.png`;
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success("Đã tải ảnh kết quả");
-    } catch {
-      toast.error("Không tải được ảnh. Thử lại nhé.");
-    }
-  }
+  const href = resultsShareImageUrl(slug, { v: imageVersion, download: true });
 
   return (
     <>
       <div className="flex flex-wrap gap-2">
-        <Button type="button" className="min-h-11" onClick={() => void download()}>
+        <a
+          href={href}
+          download="vote-di-ket-qua.png"
+          className="btn btn-primary inline-flex min-h-11 items-center"
+          onClick={(event) => {
+            try {
+              const probe = new File([], "vote-di-ket-qua.png", { type: "image/png" });
+              if (
+                typeof navigator !== "undefined" &&
+                typeof navigator.canShare === "function" &&
+                navigator.canShare({ files: [probe] })
+              ) {
+                event.preventDefault();
+                void downloadOrShareResultsImage(slug, imageVersion);
+              }
+            } catch {
+              /* keep native <a download> */
+            }
+          }}
+        >
           Tải ảnh kết quả
-        </Button>
+        </a>
         <Button type="button" variant="outline" className="min-h-11" onClick={() => setOpen(true)}>
           Chia sẻ
         </Button>

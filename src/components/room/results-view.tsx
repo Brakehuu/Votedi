@@ -5,6 +5,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { MemberAvatar } from "@/components/room/member-avatar";
 import { ResultsActions } from "@/components/room/results-actions";
+import { ShareImagePreview, downloadOrShareResultsImage, resultsShareImageUrl } from "@/components/room/share-image-preview";
 import { ZoomButton } from "@/components/ui/zoom-button";
 import { ImageLightbox } from "@/components/room/image-lightbox";
 import { roundLabel } from "@/lib/bracket";
@@ -105,21 +106,8 @@ export function ResultsView({
     }
   }
 
-  async function downloadOg() {
-    try {
-      const res = await fetch(`/p/${slug}/ket-qua/opengraph-image`);
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `vote-di-${slug}-ket-qua.png`;
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success("Đã tải ảnh kết quả");
-    } catch {
-      toast.error("Không tải được ảnh");
-    }
-  }
+  const imageVersion = room.closed_at ? Date.parse(room.closed_at) || room.closed_at : room.champion_item_id ?? "0";
+  const downloadHref = resultsShareImageUrl(slug, { v: imageVersion, download: true });
 
   const statusLabel =
     room.status === "closed" || room.status === "done"
@@ -149,7 +137,7 @@ export function ResultsView({
             ) : null}
           </div>
         </div>
-        <ResultsActions slug={slug} roomName={room.name} />
+        <ResultsActions slug={slug} roomName={room.name} imageVersion={imageVersion} />
       </div>
 
       <section className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
@@ -345,21 +333,39 @@ export function ResultsView({
 
       {tab === "share" ? (
         <section className="glass grid items-center gap-4 rounded-[26px] p-4 md:grid-cols-[1.3fr_1fr]">
-          <div className="relative aspect-[1200/630] overflow-hidden rounded-[26px] border border-[var(--line)] bg-[#F3F8F8] shadow-[0_30px_50px_-30px_rgba(8,80,90,.55)]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={`/p/${slug}/ket-qua/opengraph-image`}
-              alt="Ảnh chia sẻ kết quả"
-              className="h-full w-full object-cover"
-            />
-          </div>
+          <ShareImagePreview
+            slug={slug}
+            roomName={room.name}
+            champTitle={champion?.title || champion?.emoji || null}
+            version={imageVersion}
+          />
           <div className="space-y-3">
             <h2 className="text-xl font-extrabold tracking-tight">Ảnh chia sẻ</h2>
             <p className="text-sm text-muted-foreground">Ảnh 1200×630 để dán Zalo / Messenger. Có tên phòng và mẫu vô địch.</p>
             <div className="flex flex-wrap gap-2">
-              <button type="button" className="btn btn-primary min-h-11" onClick={() => void downloadOg()}>
+              <a
+                href={downloadHref}
+                download="vote-di-ket-qua.png"
+                className="btn btn-primary min-h-11 inline-flex items-center"
+                onClick={(event) => {
+                  // Mobile: prefer Web Share with file when available
+                  try {
+                    const probe = new File([], "vote-di-ket-qua.png", { type: "image/png" });
+                    if (
+                      typeof navigator !== "undefined" &&
+                      typeof navigator.canShare === "function" &&
+                      navigator.canShare({ files: [probe] })
+                    ) {
+                      event.preventDefault();
+                      void downloadOrShareResultsImage(slug, imageVersion);
+                    }
+                  } catch {
+                    /* keep native <a download> */
+                  }
+                }}
+              >
                 Tải ảnh kết quả
-              </button>
+              </a>
               <button type="button" className="btn btn-g min-h-11" onClick={() => void copyLink()}>
                 Sao chép link
               </button>
