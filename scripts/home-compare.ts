@@ -67,7 +67,7 @@ async function main() {
     const mock = await ctx.newPage();
     const live = await ctx.newPage();
     await mock.goto(`file://${MOCKUP.replace(/\\/g, "/")}`, { waitUntil: "domcontentloaded" });
-    await live.goto(`${LIVE}/?preview-video=1`, { waitUntil: "networkidle" });
+    await live.goto(`${LIVE}/`, { waitUntil: "networkidle" });
     await mock.waitForTimeout(400);
     await live.waitForTimeout(400);
 

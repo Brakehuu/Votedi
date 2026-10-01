@@ -431,17 +431,42 @@ html:not(.fonts-ready) .guide-start-card .n {
 /* Old homepage styles removed — see src/app/home.css */
 
 .site-footer {
-  padding: 56px 0 40px;
-  display: flex;
-  justify-content: space-between;
+  margin-top: 80px;
+  padding: 44px 0 40px;
+  border-top: 1px solid var(--line, var(--border));
+  display: grid;
+  grid-template-columns: 1.3fr repeat(4, 1fr);
   gap: 28px;
-  flex-wrap: wrap;
-  color: var(--muted-foreground);
-  font-size: 14px;
+  color: var(--muted, var(--muted-foreground));
+  font-size: 14.5px;
+}
+.site-footer .brand {
+  color: var(--ink, var(--foreground));
+  display: inline-flex;
 }
 .site-footer p {
-  margin-top: 10px;
+  margin-top: 12px;
   max-width: 22rem;
+  line-height: 1.55;
+}
+.site-footer h4,
+.site-footer .footer-h {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink, var(--foreground));
+  margin-bottom: 10px;
+}
+.site-footer ul {
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+.site-footer li a:hover {
+  color: var(--ink, var(--foreground));
 }
 .flinks {
   display: flex;
@@ -452,9 +477,23 @@ html:not(.fonts-ready) .guide-start-card .n {
   color: var(--foreground);
 }
 .copy {
-  width: 100%;
-  border-top: 1px solid var(--border);
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--line, var(--border));
   padding-top: 20px;
+  font-size: 13.5px;
+}
+@media (max-width: 1100px) {
+  .site-footer {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  .site-footer > div:first-child {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 640px) {
+  .site-footer {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 .win-glow {
   border-color: transparent !important;

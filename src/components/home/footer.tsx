@@ -1,68 +1,82 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
-import { TemplateIcon } from "@/components/seo/template-icon";
 import { FORMAT_LIST } from "@/lib/formats";
-import { POPULAR_TEMPLATE_SLUGS, getTemplate } from "@/lib/templates";
+import { getTemplate } from "@/lib/templates";
+
+/** Khớp thứ tự footer mockup v5. */
+const FOOTER_POPULAR = [
+  "hom-nay-an-gi",
+  "chon-ngay-hop-lop",
+  "chon-mau-ao-lop",
+  "di-dau-choi-cuoi-tuan",
+] as const;
 
 export function SiteFooter() {
-  const formats = FORMAT_LIST.filter((f) => f.available);
-  const popular = POPULAR_TEMPLATE_SLUGS.map((s) => getTemplate(s)).filter(Boolean);
+  const formats = FORMAT_LIST.filter((f) => f.available).slice(0, 4);
+  const popular = FOOTER_POPULAR.map((s) => getTemplate(s)).filter(Boolean);
 
   return (
     <div className="wrap">
-      <footer className="site-footer !grid-cols-1 gap-8 sm:!grid-cols-2 lg:!grid-cols-4">
+      <footer className="site-footer">
         <div>
-          <Link href="/" aria-label="Vote Đi">
+          <Link href="/" className="brand" aria-label="Vote Đi">
             <Logo />
           </Link>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p>
             Trang web tạo bình chọn online giúp hội bạn, lớp và team chốt nhanh: địa điểm ăn chơi, ngày đi, mẫu áo.
           </p>
         </div>
         <div>
-          <p className="mb-2 text-sm font-extrabold">
-            <Link href="/kieu-vote">Kiểu vote</Link>
-          </p>
-          <div className="flinks !flex-col !items-start gap-1.5">
+          <p className="footer-h">Kiểu vote</p>
+          <ul>
             {formats.map((f) => (
-              <Link key={f.id} href={`/kieu-vote/${f.slug}`}>
-                {f.name}
-              </Link>
+              <li key={f.id}>
+                <Link href={`/kieu-vote/${f.slug}`}>{f.name}</Link>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
         <div>
-          <p className="mb-2 text-sm font-extrabold">Mẫu phổ biến</p>
-          <div className="flinks !flex-col !items-start gap-1.5">
+          <p className="footer-h">Mẫu phổ biến</p>
+          <ul>
             {popular.map((t) =>
               t ? (
-                <Link key={t.slug} href={`/mau/${t.slug}`} className="inline-flex items-center gap-2">
-                  <TemplateIcon template={t} className="tpl-ic-sm" />
-                  {t.title}
-                </Link>
+                <li key={t.slug}>
+                  <Link href={`/mau/${t.slug}`}>{t.title}</Link>
+                </li>
               ) : null,
             )}
-          </div>
+          </ul>
         </div>
-        <div className="space-y-4">
-          <div>
-            <p className="mb-2 text-sm font-extrabold">Tài nguyên</p>
-            <div className="flinks !flex-col !items-start gap-1.5">
+        <div>
+          <p className="footer-h">Tài nguyên</p>
+          <ul>
+            <li>
               <Link href="/huong-dan">Hướng dẫn</Link>
+            </li>
+            <li>
               <Link href="/blog">Blog</Link>
+            </li>
+            <li>
               <Link href="/gioi-thieu">Giới thiệu</Link>
+            </li>
+            <li>
               <Link href="/lien-he">Liên hệ</Link>
-            </div>
-          </div>
-          <div>
-            <p className="mb-2 text-sm font-extrabold">Pháp lý</p>
-            <div className="flinks !flex-col !items-start gap-1.5">
-              <Link href="/dieu-khoan">Điều khoản</Link>
-              <Link href="/quyen-rieng-tu">Quyền riêng tư</Link>
-            </div>
-          </div>
+            </li>
+          </ul>
         </div>
-        <div className="copy sm:col-span-2 lg:col-span-4">© 2026 Vote Đi</div>
+        <div>
+          <p className="footer-h">Pháp lý</p>
+          <ul>
+            <li>
+              <Link href="/dieu-khoan">Điều khoản</Link>
+            </li>
+            <li>
+              <Link href="/quyen-rieng-tu">Quyền riêng tư</Link>
+            </li>
+          </ul>
+        </div>
+        <div className="copy">© 2026 Vote Đi · votedi.vn</div>
       </footer>
     </div>
   );

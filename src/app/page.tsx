@@ -5,7 +5,7 @@ import { FeaturesSection } from "@/components/home/features-section";
 import { FormatsSection } from "@/components/home/formats-section";
 import { HomeCta } from "@/components/home/home-cta";
 import { HomeHero } from "@/components/home/hero";
-import { HomeVideoGate } from "@/components/home/home-video-gate";
+import { HomeVideo } from "@/components/home/home-video";
 import { MobileBar } from "@/components/home/mobile-bar";
 import { RevealInit } from "@/components/home/reveal-init";
 import { SiteFooter } from "@/components/home/footer";
@@ -72,7 +72,7 @@ export default function HomePage() {
         <FeaturesSection />
         <BlogSection posts={posts} />
         <FaqSection />
-        <HomeVideoGate />
+        {HOME_VIDEO.enabled ? <HomeVideo config={HOME_VIDEO} /> : null}
         <HomeCta />
       </main>
       <SiteFooter />

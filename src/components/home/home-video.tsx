@@ -13,35 +13,55 @@ function formatTime(sec: number) {
 export function HomeVideo({ config }: { config: HomeVideoConfig }) {
   const [playing, setPlaying] = useState(false);
   const [chapter, setChapter] = useState(0);
+  const [posterBroken, setPosterBroken] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const start = config.chapters[chapter]?.start ?? 0;
+  const pendingSeek = useRef<number | null>(null);
+
+  const seekAndPlay = useCallback((sec: number) => {
+    const el = videoRef.current;
+    if (!el) {
+      pendingSeek.current = sec;
+      return;
+    }
+    const apply = () => {
+      try {
+        el.currentTime = sec;
+      } catch {
+        /* ignore until metadata */
+      }
+      void el.play().catch(() => undefined);
+    };
+    if (el.readyState >= 1) apply();
+    else el.addEventListener("loadedmetadata", apply, { once: true });
+  }, []);
 
   const playFrom = useCallback(
     (index: number) => {
+      const start = config.chapters[index]?.start ?? 0;
       setChapter(index);
       setPlaying(true);
-      if (config.provider === "mp4" && videoRef.current) {
-        videoRef.current.currentTime = config.chapters[index]?.start ?? 0;
-        void videoRef.current.play();
+      if (config.provider === "mp4") {
+        // Video may mount on next paint; seek after mount via effect + pendingSeek
+        pendingSeek.current = start;
+        if (videoRef.current) seekAndPlay(start);
       }
     },
-    [config],
+    [config, seekAndPlay],
   );
 
   useEffect(() => {
-    if (!playing || config.provider !== "mp4" || !videoRef.current) return;
-    videoRef.current.currentTime = start;
-    void videoRef.current.play();
-  }, [playing, start, config.provider]);
+    if (!playing || config.provider !== "mp4") return;
+    const el = videoRef.current;
+    if (!el) return;
+    const sec = pendingSeek.current ?? config.chapters[chapter]?.start ?? 0;
+    pendingSeek.current = null;
+    seekAndPlay(sec);
+  }, [playing, chapter, config.provider, config.chapters, seekAndPlay]);
 
   const youtubeSrc =
     config.provider === "youtube" && config.youtubeId
-      ? `https://www.youtube-nocookie.com/embed/${config.youtubeId}?autoplay=1&rel=0&start=${start}`
+      ? `https://www.youtube-nocookie.com/embed/${config.youtubeId}?autoplay=1&rel=0&start=${config.chapters[chapter]?.start ?? 0}`
       : null;
-
-  function onPosterActivate() {
-    playFrom(chapter);
-  }
 
   return (
     <section className="sec wrap" id="video">
@@ -62,15 +82,26 @@ export function HomeVideo({ config }: { config: HomeVideoConfig }) {
                 className="poster"
                 role="button"
                 tabIndex={0}
-                aria-label="Phát video giới thiệu Vote Đi"
-                onClick={onPosterActivate}
+                onClick={() => playFrom(chapter)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    onPosterActivate();
+                    playFrom(chapter);
                   }
                 }}
               >
+                {config.poster && !posterBroken ? (
+                  <Image
+                    src={config.poster}
+                    alt=""
+                    fill
+                    sizes="(min-width: 1100px) 720px, 100vw"
+                    className="poster-img"
+                    priority={false}
+                    loading="lazy"
+                    onError={() => setPosterBroken(true)}
+                  />
+                ) : null}
                 <div className="in">
                   <span className="lg">Vote Đi</span>
                   <h3>
@@ -89,16 +120,6 @@ export function HomeVideo({ config }: { config: HomeVideoConfig }) {
                   <span>0:45</span>
                   <span>Có phụ đề tiếng Việt</span>
                 </div>
-                {config.poster ? (
-                  <Image
-                    src={config.poster}
-                    alt=""
-                    fill
-                    sizes="(min-width:1100px) 720px, 100vw"
-                    className="object-cover opacity-0"
-                    priority={false}
-                  />
-                ) : null}
               </div>
             ) : null}
 
@@ -112,7 +133,14 @@ export function HomeVideo({ config }: { config: HomeVideoConfig }) {
             ) : null}
 
             {playing && config.provider === "mp4" && config.src ? (
-              <video ref={videoRef} src={config.src} controls playsInline preload="none">
+              <video
+                ref={videoRef}
+                src={config.src}
+                controls
+                playsInline
+                preload="none"
+                autoPlay
+              >
                 {config.captionsUrl ? (
                   <track kind="captions" srcLang="vi" src={config.captionsUrl} default label="Tiếng Việt" />
                 ) : null}
@@ -122,16 +150,7 @@ export function HomeVideo({ config }: { config: HomeVideoConfig }) {
 
           <details className="tr">
             <summary>Xem nội dung video dạng văn bản</summary>
-            <p>
-              {config.chapters.map((ch) => (
-                <span key={ch.start}>
-                  <b>
-                    {formatTime(ch.start)} {ch.title}.
-                  </b>{" "}
-                  {ch.summary}{" "}
-                </span>
-              ))}
-            </p>
+            <p>{config.transcript}</p>
           </details>
         </div>
 
