@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { SiteFooter } from "@/components/home/footer";
 import { ContactForm } from "@/components/seo/contact-form";
 import { absoluteUrl } from "@/lib/site";
@@ -18,7 +19,9 @@ export default function LienHePage() {
           Góp ý, báo lỗi hoặc đề xuất mẫu mới. Chúng mình đọc mọi tin gửi tới.
         </p>
         <div className="mt-8">
-          <ContactForm />
+          <Suspense fallback={<div className="glass h-64 animate-pulse rounded-[22px]" />}>
+            <ContactForm />
+          </Suspense>
         </div>
       </main>
       <SiteFooter />

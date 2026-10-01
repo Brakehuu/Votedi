@@ -73,3 +73,40 @@ export function feederMatch(size: number, round: number, position: number, side:
 export function matchKey(round: number, position: number) {
   return `${round}:${position}`;
 }
+
+/** Hạng 3 từ thua bán kết (hoặc hạng 3 vòng loại). Shared server+client — không đặt trong "use client". */
+export function deriveThirdPlace<T extends { id: string }>({
+  items,
+  matches,
+  knockoutSize,
+  championId,
+  runnerUpId,
+  qualifyRankIds,
+}: {
+  items: T[];
+  matches: {
+    round: number;
+    status: string;
+    winner_item_id: string | null;
+    item_a: string | null;
+    item_b: string | null;
+  }[];
+  knockoutSize: number;
+  championId?: string | null;
+  runnerUpId?: string | null;
+  qualifyRankIds?: string[];
+}): T | undefined {
+  if (qualifyRankIds?.length) {
+    const thirdId = qualifyRankIds.find((id) => id !== championId && id !== runnerUpId);
+    if (thirdId) return items.find((i) => i.id === thirdId);
+  }
+  const finalRound = roundCount(knockoutSize);
+  const semiRound = finalRound - 1;
+  if (semiRound < 1) return undefined;
+  const semis = matches.filter((m) => m.round === semiRound && m.status === "done" && m.winner_item_id);
+  const losers = semis
+    .map((m) => (m.winner_item_id === m.item_a ? m.item_b : m.item_a))
+    .filter((id): id is string => Boolean(id) && id !== championId && id !== runnerUpId);
+  if (losers[0]) return items.find((i) => i.id === losers[0]);
+  return undefined;
+}

@@ -3,11 +3,11 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { SiteFooter } from "@/components/home/footer";
 import { ResultsActions } from "@/components/room/results-actions";
-import { ResultsView, deriveThirdPlace } from "@/components/room/results-view";
+import { ResultsView } from "@/components/room/results-view";
 import { fetchRoomBundle } from "@/lib/room-data";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
-import { roundCount } from "@/lib/bracket";
+import { deriveThirdPlace, roundCount } from "@/lib/bracket";
 import { SetupNotice } from "@/components/setup-notice";
 
 export const dynamic = "force-dynamic";

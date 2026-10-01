@@ -7,7 +7,7 @@ import { MemberAvatar } from "@/components/room/member-avatar";
 import { ResultsActions } from "@/components/room/results-actions";
 import { ZoomButton } from "@/components/ui/zoom-button";
 import { ImageLightbox } from "@/components/room/image-lightbox";
-import { roundCount, roundLabel } from "@/lib/bracket";
+import { roundLabel } from "@/lib/bracket";
 import type { Item, Match, MatchVote, Member, QualifyVote, Room } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -534,33 +534,3 @@ function MatchSide({
   );
 }
 
-/** Derive podium third from semi losers (or qualify rank #3). */
-export function deriveThirdPlace({
-  items,
-  matches,
-  knockoutSize,
-  championId,
-  runnerUpId,
-  qualifyRankIds,
-}: {
-  items: Item[];
-  matches: Match[];
-  knockoutSize: number;
-  championId?: string | null;
-  runnerUpId?: string | null;
-  qualifyRankIds?: string[];
-}): Item | undefined {
-  if (qualifyRankIds?.length) {
-    const thirdId = qualifyRankIds.find((id) => id !== championId && id !== runnerUpId);
-    if (thirdId) return items.find((i) => i.id === thirdId);
-  }
-  const finalRound = roundCount(knockoutSize);
-  const semiRound = finalRound - 1;
-  if (semiRound < 1) return undefined;
-  const semis = matches.filter((m) => m.round === semiRound && m.status === "done" && m.winner_item_id);
-  const losers = semis
-    .map((m) => (m.winner_item_id === m.item_a ? m.item_b : m.item_a))
-    .filter((id): id is string => Boolean(id) && id !== championId && id !== runnerUpId);
-  if (losers[0]) return items.find((i) => i.id === losers[0]);
-  return undefined;
-}

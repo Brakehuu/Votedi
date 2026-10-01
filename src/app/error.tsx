@@ -11,6 +11,12 @@ export default function Error({
   reset: () => void;
 }) {
   const popular = POPULAR_TEMPLATE_SLUGS.map((s) => getTemplate(s)).filter(Boolean);
+  const digest = error.digest?.trim() || "";
+  const reportHref = digest
+    ? `/lien-he?digest=${encodeURIComponent(digest)}&message=${encodeURIComponent(
+        `Báo lỗi trang (digest ${digest})\n${error.message || ""}\nURL: ${typeof window !== "undefined" ? window.location.href : ""}`,
+      )}`
+    : "/lien-he";
 
   return (
     <main className="mx-auto flex min-h-[60vh] w-full max-w-lg flex-col items-start justify-center gap-4 px-4 py-16">
@@ -18,16 +24,22 @@ export default function Error({
       <p className="text-muted-foreground">
         Thử lại. Nếu mới cập nhật database, chạy migration rồi tải lại.
       </p>
-      <p className="w-full break-words rounded-2xl bg-muted px-3 py-2 font-mono text-xs text-muted-foreground">
-        {error.message || "Unknown error"}
-        {error.digest ? ` · ${error.digest}` : ""}
-      </p>
+      <div className="w-full space-y-2 rounded-2xl bg-muted px-3 py-3 text-xs text-muted-foreground">
+        <p className="break-words font-mono">{error.message || "Unknown error"}</p>
+        <p className="break-all font-mono">
+          <span className="font-sans font-bold text-foreground">Digest: </span>
+          {digest || "(không có)"}
+        </p>
+      </div>
       <div className="flex flex-wrap gap-2">
         <button type="button" className="btn btn-primary" onClick={() => reset()}>
           Thử lại
         </button>
         <Link href="/" className="btn btn-g">
           Về trang chủ
+        </Link>
+        <Link href={reportHref} className="btn btn-g">
+          Báo lỗi này
         </Link>
       </div>
       <div className="mt-4 w-full">

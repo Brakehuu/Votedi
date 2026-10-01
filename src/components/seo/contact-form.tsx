@@ -1,9 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 export function ContactForm() {
+  const search = useSearchParams();
+  const presetMessage = search.get("message") ?? "";
+  const digest = search.get("digest") ?? "";
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
 
@@ -21,7 +25,7 @@ export function ContactForm() {
           email: String(data.get("email") ?? ""),
           message: String(data.get("message") ?? ""),
           company: String(data.get("company") ?? ""), // honeypot
-          page: "/lien-he",
+          page: digest ? `/lien-he?digest=${digest}` : "/lien-he",
         }),
       });
       const json = (await res.json()) as { ok?: boolean; error?: string };
@@ -53,7 +57,6 @@ export function ContactForm() {
 
   return (
     <form onSubmit={onSubmit} className="glass space-y-4 rounded-[22px] p-5">
-      {/* honeypot — hidden from users */}
       <input
         type="text"
         name="company"
@@ -62,14 +65,12 @@ export function ContactForm() {
         className="absolute left-[-9999px] h-0 w-0 opacity-0"
         aria-hidden
       />
+      {digest ? (
+        <p className="rounded-xl bg-muted px-3 py-2 font-mono text-xs break-all">Digest: {digest}</p>
+      ) : null}
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold">Tên</span>
-        <input
-          name="name"
-          required
-          maxLength={80}
-          className="h-11 w-full rounded-xl border border-input bg-card px-3"
-        />
+        <input name="name" required maxLength={80} className="h-11 w-full rounded-xl border border-input bg-card px-3" />
       </label>
       <label className="block space-y-1.5">
         <span className="text-sm font-semibold">Email</span>
@@ -88,6 +89,7 @@ export function ContactForm() {
           required
           maxLength={2000}
           rows={5}
+          defaultValue={presetMessage}
           className="w-full resize-none rounded-xl border border-input bg-card px-3 py-2"
         />
       </label>
