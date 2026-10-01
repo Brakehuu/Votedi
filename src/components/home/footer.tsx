@@ -16,7 +16,7 @@ export function SiteFooter() {
             <Logo />
           </Link>
           <p className="mt-2 text-sm text-muted-foreground">
-            Tạo bình chọn online miễn phí cho nhóm — không cần tài khoản.
+            Trang web tạo bình chọn online giúp hội bạn, lớp và team chốt nhanh: địa điểm ăn chơi, ngày đi, mẫu áo.
           </p>
         </div>
         <div>

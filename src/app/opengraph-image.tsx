@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Vote Đi – Bình chọn mẫu áo, logo online kiểu World Cup";
+export const alt = "Vote Đi – Tạo bình chọn online miễn phí cho nhóm";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -35,14 +35,14 @@ export default function OpenGraphImage() {
         >
           V
         </div>
-        <div style={{ display: "flex", marginTop: 36, fontSize: 68, fontWeight: 800, lineHeight: 1.05, letterSpacing: -2 }}>
-          Cả nhóm không chốt được?
+        <div style={{ display: "flex", marginTop: 36, fontSize: 58, fontWeight: 800, lineHeight: 1.08, letterSpacing: -2 }}>
+          Cả nhóm rủ nhau chọn nhưng mãi không chốt được?
         </div>
-        <div style={{ display: "flex", marginTop: 12, fontSize: 68, fontWeight: 800, letterSpacing: -2 }}>
+        <div style={{ display: "flex", marginTop: 16, fontSize: 48, fontWeight: 800, letterSpacing: -2 }}>
           Vote Đi để chốt ngay!
         </div>
-        <div style={{ display: "flex", marginTop: 28, fontSize: 28, opacity: 0.92 }}>
-          Bình chọn mẫu áo, logo online kiểu World Cup
+        <div style={{ display: "flex", marginTop: 28, fontSize: 26, opacity: 0.92 }}>
+          Tạo bình chọn online miễn phí · gửi link Zalo là vote được
         </div>
       </div>
     ),

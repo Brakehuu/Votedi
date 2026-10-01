@@ -1,13 +1,13 @@
 import Link from "next/link";
-import { MatchDemo } from "@/components/home/match-demo";
+import { HeroShowcase } from "@/components/home/hero-showcase";
 
 function Check() {
   return (
-    <svg viewBox="0 0 16 16" aria-hidden>
+    <svg viewBox="0 0 16 16" width={15} height={15} aria-hidden>
       <path
         d="M3 8.5 6.5 12 13 4.5"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="2.2"
         fill="none"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -18,7 +18,7 @@ function Check() {
 
 export function HomeHero() {
   return (
-    <div className="hero">
+    <section className="hero wrap">
       <div>
         <div className="proof glass">
           <div className="stack">
@@ -43,7 +43,7 @@ export function HomeHero() {
 
         <h1>
           <span className="q">
-            Cả nhóm rủ nhau chọn mẫu nhưng <em>mãi không chốt được?</em>
+            Cả nhóm rủ nhau chọn nhưng <em>mãi không chốt được?</em>
           </span>
           <span className="a">
             <span className="pill">Vote Đi</span>
@@ -52,16 +52,16 @@ export function HomeHero() {
         </h1>
 
         <p className="lead">
-          Tải ảnh mẫu áo, logo, sản phẩm lên rồi gửi link cho cả nhóm. Vote vòng loại, đấu loại trực tiếp như World
-          Cup. <strong>Hết giờ là có mẫu vô địch.</strong>
+          Trang web tạo bình chọn online giúp hội bạn, lớp và team chốt nhanh: đi đâu chơi, ăn gì, ngày nào ai rảnh, mẫu
+          áo nào. Gửi link Zalo là vote được. <strong>Hết giờ là có kết quả.</strong>
         </p>
 
-        <div className="hero-cta" data-hero-cta>
-          <Link href="/tao-phong" className="btn btn-primary">
+        <div className="cta" data-hero-cta>
+          <Link href="/tao-phong" prefetch={false} className="btn btn-primary btn-p">
             Tạo phòng miễn phí
           </Link>
-          <a href="#cach-hoat-dong" className="btn btn-ghost">
-            Xem cách hoạt động
+          <a href="#kieu-vote" className="btn btn-g">
+            Xem các kiểu vote
           </a>
         </div>
         <div className="ticks">
@@ -80,7 +80,7 @@ export function HomeHero() {
         </div>
       </div>
 
-      <MatchDemo />
-    </div>
+      <HeroShowcase />
+    </section>
   );
 }

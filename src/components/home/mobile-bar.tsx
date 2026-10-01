@@ -18,7 +18,7 @@ export function MobileBar() {
 
   return (
     <div className={show ? "mbar glass show" : "mbar glass"} id="mbar">
-      <Link href="/tao-phong" className="btn btn-primary">
+      <Link href="/tao-phong" prefetch={false} className="btn btn-primary btn-p">
         Tạo phòng miễn phí
       </Link>
     </div>
