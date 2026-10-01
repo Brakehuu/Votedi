@@ -55,6 +55,22 @@ export function websiteGraph() {
   };
 }
 
+export function webApplicationGraph() {
+  return {
+    "@type": "WebApplication",
+    name: "Vote Đi",
+    url: absoluteUrl("/"),
+    applicationCategory: "UtilitiesApplication",
+    operatingSystem: "Any",
+    inLanguage: "vi",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "VND",
+    },
+  };
+}
+
 export function popularTemplates() {
   return POPULAR_TEMPLATE_SLUGS.map((slug) => getTemplate(slug)).filter(Boolean);
 }

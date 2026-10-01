@@ -1,3 +1,4 @@
+/** FAQ — dùng chung cho UI trang chủ và JSON-LD FAQPage. */
 export type FaqItem = {
   q: string;
   a: string;
@@ -8,72 +9,59 @@ export type FaqGroup = {
   items: FaqItem[];
 };
 
-/** FAQ — dùng chung cho UI và JSON-LD. */
 export const faqGroups: FaqGroup[] = [
   {
     title: "Bắt đầu",
     items: [
       {
+        q: "Vote Đi là gì và dùng để làm gì?",
+        a: "Vote Đi là trang web tạo bình chọn online giúp hội bạn, lớp, team và gia đình chốt nhanh các quyết định chung: đi đâu chơi, ăn gì, ngày nào ai rảnh, chọn mẫu áo, đặt tên. Bạn tạo phòng, gửi link vào nhóm Zalo, cả nhóm vote ngay trên điện thoại.",
+      },
+      {
         q: "Vote Đi có miễn phí không?",
-        a: "Miễn phí. Tạo phòng, mời người, tải ảnh và vote đều không mất phí.",
+        a: "Miễn phí. Tạo phòng, mời người, thêm lựa chọn và vote đều không mất phí.",
       },
       {
-        q: "Người được mời có cần tải app hay đăng ký không?",
-        a: "Không. Bấm link (nhập mật khẩu nếu phòng có đặt), đặt tên và chọn avatar hoặc emoji là vote được ngay trên trình duyệt điện thoại hay máy tính.",
+        q: "Cả nhóm có phải tạo tài khoản không?",
+        a: "Không. Mỗi người bấm link mời, đặt tên và chọn avatar hoặc emoji là vào phòng. Chủ phòng có thể đặt mật khẩu nếu muốn phòng riêng tư hơn.",
       },
       {
-        q: "Một phòng được bao nhiêu mẫu?",
-        a: "Mỗi phòng tối đa 32 mẫu. Sơ đồ loại trực tiếp nhận từ 2 đến 16 mẫu; nhiều hơn thì dùng kiểu có vòng loại để lọc trước.",
-      },
-      {
-        q: "Nên tải ảnh thế nào cho đẹp?",
-        a: "Nhận ảnh JPG, PNG, WEBP, tối đa 10MB mỗi ảnh. Ảnh PNG nền trong suốt sẽ hiện nổi trên nền sáng, ảnh thường được cắt vuông và bo góc. Để đẹp nhất, chụp sản phẩm ở giữa khung, nền đơn giản, các mẫu cùng góc chụp.",
+        q: "Dùng trên điện thoại được không?",
+        a: "Được. Vote Đi làm cho điện thoại trước: vuốt để quẹt chọn, chạm để chấm sao, kéo thả để xếp hạng, và sơ đồ đấu xem được theo từng vòng.",
       },
     ],
   },
   {
-    title: "Cách đấu",
+    title: "Kiểu vote và lựa chọn",
     items: [
       {
-        q: "Vòng loại và loại trực tiếp khác nhau thế nào?",
-        a: "Vòng loại: tất cả mẫu hiện cùng lúc, mỗi người có số phiếu chủ phòng đặt. Hết giờ, các mẫu nhiều phiếu nhất vào sơ đồ. Loại trực tiếp: mẫu đấu từng cặp, mỗi người chọn 1 trong 2, mẫu thắng đi tiếp đến chung kết.",
+        q: "Có những kiểu vote nào, nên chọn kiểu nào?",
+        a: "Có 6 kiểu: Bình chọn nhanh (đi đâu, ăn gì), Đấu loại World Cup (mẫu áo, logo), Chọn lịch rảnh (ngày họp lớp, du lịch), Quẹt chọn (hôm nay ăn gì), Xếp hạng (đặt tên) và Chấm điểm (cuộc thi ảnh). Chưa biết chọn gì thì bắt đầu từ một mẫu có sẵn, mẫu đã chọn sẵn kiểu vote hợp lý.",
       },
       {
-        q: "Mẫu được xếp vào nhánh như thế nào?",
-        a: "Bốc thăm ngẫu nhiên. Chủ phòng xem trước sơ đồ và có thể bốc lại trước khi bấm bắt đầu. Nếu số mẫu không chẵn 4, 8, 16 thì một số mẫu được miễn đấu vòng đầu, cũng do bốc thăm.",
+        q: "Dán link Google Maps để vote địa điểm được không?",
+        a: "Được. Dán link Google Maps (kể cả link rút gọn maps.app.goo.gl), Vote Đi tự lấy tên và vị trí, hiện bản đồ nhỏ và nút chỉ đường. Bạn cũng có thể thêm giá và link đặt phòng cho từng địa điểm.",
       },
       {
-        q: "Khi nào một cặp đấu kết thúc?",
-        a: "Khi tất cả thành viên đã vote hoặc hết thời gian chủ phòng đặt. Chủ phòng có thể gia hạn thêm hoặc kết thúc sớm.",
+        q: "Một phòng có bao nhiêu lựa chọn, bao nhiêu người?",
+        a: "Phòng dùng được cho cả lớp hay cả team. Số lựa chọn tối đa tùy kiểu vote, ví dụ đấu loại trực tiếp có tối đa 16 mẫu, còn vòng loại rồi đấu loại nhận tối đa 32 mẫu.",
       },
       {
-        q: "Hai mẫu bằng phiếu thì sao?",
-        a: "Theo luật chủ phòng chọn khi tạo phòng: bốc ngẫu nhiên, hoặc ưu tiên lựa chọn của chủ phòng.",
+        q: "Hai lựa chọn bằng phiếu thì chốt thế nào?",
+        a: "Theo luật chủ phòng chọn khi tạo phòng: bốc ngẫu nhiên, hoặc ưu tiên lựa chọn của chủ phòng. Với đấu loại, bảng xếp nhánh và luật hòa phiếu đều hiện rõ trước khi bắt đầu.",
       },
     ],
   },
   {
-    title: "Vote và riêng tư",
+    title: "Riêng tư và dữ liệu",
     items: [
       {
-        q: "Vote nhầm có đổi được không?",
-        a: "Được, miễn là cặp đấu hoặc vòng loại chưa hết giờ. Bấm vào mẫu còn lại để đổi.",
+        q: "Vote ẩn danh hoạt động thế nào?",
+        a: "Khi bật ẩn danh, không ai thấy ai chọn gì, kể cả chủ phòng. Hệ thống chỉ hiện số lượng tổng hợp. Chủ phòng chỉ được bật ẩn danh, không tắt lại sau khi đã có người vote.",
       },
       {
-        q: "Người khác có thấy mình vote mẫu nào không?",
-        a: "Có. Avatar của bạn hiện dưới mẫu bạn chọn, nên kết quả minh bạch, không ai nghi ai.",
-      },
-      {
-        q: "Ai vào được phòng của tôi?",
-        a: "Người có link, và thêm mật khẩu nếu chủ phòng bật. Chủ phòng có thể khóa phòng để không nhận thêm người, hoặc mời một thành viên ra.",
-      },
-      {
-        q: "Xem lại kết quả ở đâu?",
-        a: "Vào mục Phòng của tôi để mở lại các phòng đã tham gia. Trang kết quả có mẫu vô địch, toàn bộ sơ đồ và ai vote cặp nào.",
-      },
-      {
-        q: "Phòng và ảnh lưu bao lâu?",
-        a: "Phòng đã chốt hoặc không có hoạt động quá 90 ngày sẽ bị xoá tự động cùng ảnh trên Storage. Chủ phòng cũng có thể xoá sớm trong Phòng của tôi.",
+        q: "Ảnh và dữ liệu phòng được lưu bao lâu?",
+        a: "Phòng không hoạt động trong thời gian dài sẽ được tự dọn cùng ảnh trong phòng. Chi tiết xem ở trang Quyền riêng tư.",
       },
     ],
   },

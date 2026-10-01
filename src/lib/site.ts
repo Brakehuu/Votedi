@@ -6,7 +6,7 @@ export const siteName = "Vote Đi";
 export const siteTitle = "Vote Đi – Tạo bình chọn online miễn phí cho nhóm";
 
 export const siteDescription =
-  "Tạo bình chọn online miễn phí cho nhóm: mẫu áo, quán ăn, lịch rảnh, quẹt chọn. Không cần tài khoản, gửi link Zalo là vote được.";
+  "Tạo bình chọn online miễn phí, gửi link Zalo là cả nhóm vote được. Chọn đi đâu, ăn gì, ngày nào rảnh, mẫu áo nào. Đấu loại như World Cup, không cần tài khoản.";
 
 export const absoluteUrl = (path = "/") => {
   const base = siteUrl.replace(/\/$/, "");
