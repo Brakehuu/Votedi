@@ -77,6 +77,7 @@ function SiteHeaderInner() {
                       <Link
                         key={f.id}
                         href={`/tao-phong?kieu=${f.id}`}
+                        prefetch={false}
                         className="block rounded-xl px-3 py-2.5 text-sm font-semibold hover:bg-muted"
                         onClick={close}
                       >
@@ -98,10 +99,10 @@ function SiteHeaderInner() {
               <Link href="/blog">Blog</Link>
             </nav>
             <div className="nav-cta">
-              <Link href="/phong-cua-toi" className="btn btn-ghost btn-sm desk-ghost">
+              <Link href="/phong-cua-toi" prefetch={false} className="btn btn-ghost btn-sm desk-ghost">
                 Phòng của tôi
               </Link>
-              <Link href="/tao-phong" className="btn btn-primary btn-sm desk-create">
+              <Link href="/tao-phong" prefetch={false} className="btn btn-primary btn-sm desk-create">
                 Tạo phòng
               </Link>
               <button className="menu-btn" aria-label="Mở menu" type="button" onClick={() => setOpen(true)}>
@@ -153,7 +154,7 @@ function SiteHeaderInner() {
           </div>
           <div>
             <p className="mb-2 px-1 text-xs font-bold tracking-wide text-muted-foreground uppercase">Tài khoản</p>
-            <Link href="/phong-cua-toi" onClick={close}>
+            <Link href="/phong-cua-toi" prefetch={false} onClick={close}>
               Phòng của tôi
             </Link>
           </div>
@@ -166,7 +167,7 @@ function SiteHeaderInner() {
           <span className="dark:hidden">Giao diện tối</span>
           <span className="hidden dark:inline">Giao diện sáng</span>
         </button>
-        <Link href="/tao-phong" className="btn btn-primary" onClick={close}>
+        <Link href="/tao-phong" prefetch={false} className="btn btn-primary" onClick={close}>
           Tạo phòng miễn phí
         </Link>
       </div>

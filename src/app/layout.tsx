@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import Script from "next/script";
 import { Be_Vietnam_Pro } from "next/font/google";
 import { Mesh, SiteHeader } from "@/components/site-header";
 import { Providers } from "@/components/providers";
@@ -9,10 +8,12 @@ import { siteDescription, siteTitle, siteUrl } from "@/lib/site";
 import "./globals.css";
 
 const beVietnam = Be_Vietnam_Pro({
-  subsets: ["latin", "vietnamese"],
-  weight: ["400", "500", "600", "700", "800"],
+  subsets: ["vietnamese"],
+  weight: ["400", "600", "700", "800"],
   variable: "--font-be-vietnam",
-  display: "swap",
+  display: "optional",
+  preload: true,
+  adjustFontFallback: true,
 });
 
 export const metadata: Metadata = {
@@ -55,10 +56,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         suppressHydrationWarning
         className="min-h-screen bg-background font-sans text-foreground antialiased"
       >
-        <Script
-          id="votedi-ld-json"
+        <script
           type="application/ld+json"
-          strategy="beforeInteractive"
           dangerouslySetInnerHTML={jsonLd({
             "@context": "https://schema.org",
             "@graph": [organizationGraph(), websiteGraph()],

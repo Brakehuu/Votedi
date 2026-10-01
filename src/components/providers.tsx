@@ -2,12 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { ThemeProvider, useTheme } from "next-themes";
-import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import dynamic from "next/dynamic";
 import { Toaster } from "sonner";
-import { createClient } from "@/lib/supabase/client";
-import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { reportError } from "@/lib/errors";
+
+const Analytics = dynamic(
+  () => import("@vercel/analytics/react").then((m) => m.Analytics),
+  { ssr: false },
+);
+const SpeedInsights = dynamic(
+  () => import("@vercel/speed-insights/next").then((m) => m.SpeedInsights),
+  { ssr: false },
+);
 
 function ToastHost() {
   const { resolvedTheme } = useTheme();
@@ -22,29 +27,6 @@ function ToastHost() {
         duration: 3200,
       }}
     />
-  );
-}
-
-function AuthBanner() {
-  const [message, setMessage] = useState<string | null>(() =>
-    isSupabaseConfigured() ? null : "Thiếu biến môi trường Supabase. Thêm file .env.local rồi chạy lại.",
-  );
-
-  useEffect(() => {
-    if (!isSupabaseConfigured()) return;
-    const supabase = createClient();
-    supabase.auth.getUser().then(async ({ data }) => {
-      if (data.user) return;
-      const { error } = await supabase.auth.signInAnonymously();
-      if (error) setMessage(reportError(error));
-    });
-  }, []);
-
-  if (!message) return null;
-  return (
-    <div className="bg-warn/20 px-4 py-3 text-center text-sm text-foreground" role="status">
-      {message}
-    </div>
   );
 }
 
@@ -77,7 +59,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
       disableTransitionOnChange
       scriptProps={{ suppressHydrationWarning: true }}
     >
-      <AuthBanner />
       <OfflineBanner />
       {children}
       <ToastHost />
