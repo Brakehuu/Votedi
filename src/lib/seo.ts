@@ -41,12 +41,13 @@ export function organizationGraph() {
   };
 }
 
-export function websiteGraph() {
+export function websiteGraph(description?: string) {
   return {
     "@type": "WebSite",
     name: "Vote Đi",
     url: absoluteUrl("/"),
     inLanguage: "vi",
+    ...(description ? { description } : {}),
     potentialAction: {
       "@type": "SearchAction",
       target: `${absoluteUrl("/mau")}?q={search_term_string}`,
@@ -55,7 +56,7 @@ export function websiteGraph() {
   };
 }
 
-export function webApplicationGraph() {
+export function webApplicationGraph(description?: string) {
   return {
     "@type": "WebApplication",
     name: "Vote Đi",
@@ -63,6 +64,7 @@ export function webApplicationGraph() {
     applicationCategory: "UtilitiesApplication",
     operatingSystem: "Any",
     inLanguage: "vi",
+    ...(description ? { description } : {}),
     offers: {
       "@type": "Offer",
       price: "0",

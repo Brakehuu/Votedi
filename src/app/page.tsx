@@ -22,18 +22,21 @@ import {
   webApplicationGraph,
   websiteGraph,
 } from "@/lib/seo";
-import { absoluteUrl, siteDescription, siteTitle } from "@/lib/site";
+import { absoluteUrl, HOME_DESCRIPTION, siteTitle } from "@/lib/site";
 import "./home.css";
 
 export const metadata: Metadata = {
   title: { absolute: siteTitle },
-  description: siteDescription,
+  description: HOME_DESCRIPTION,
   alternates: { canonical: absoluteUrl("/") },
   openGraph: {
     title: siteTitle,
-    description: siteDescription,
+    description: HOME_DESCRIPTION,
     url: absoluteUrl("/"),
     images: [{ url: absoluteUrl("/opengraph-image") }],
+  },
+  twitter: {
+    description: HOME_DESCRIPTION,
   },
 };
 
@@ -42,8 +45,8 @@ export default function HomePage() {
 
   const graph: Record<string, unknown>[] = [
     organizationGraph(),
-    websiteGraph(),
-    webApplicationGraph(),
+    websiteGraph(HOME_DESCRIPTION),
+    webApplicationGraph(HOME_DESCRIPTION),
     faqPage(faqs),
   ];
   if (HOME_VIDEO.enabled) {
