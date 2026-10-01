@@ -270,7 +270,7 @@ export function HostMenu() {
             <div className="rs-head">
               <b>Cài đặt phòng</b>
               <button ref={closeRef} type="button" className="rs-x" aria-label="Đóng" onClick={() => setOpen(false)}>
-                <X aria-hidden />
+                <X width={17} height={17} strokeWidth={1.9} className="shrink-0" aria-hidden />
               </button>
             </div>
 
@@ -279,15 +279,15 @@ export function HostMenu() {
                 <h3>Điều khiển {roundTitle}</h3>
                 <div className="rs-list">
                   <button type="button" className="rs-opt" onClick={() => void extendDeadline(5)}>
-                    <span className="rs-oi"><Timer aria-hidden /></span>
+                    <span className="rs-oi"><Timer width={17} height={17} strokeWidth={1.9} className="shrink-0" aria-hidden /></span>
                     <span className="rs-grow">Gia hạn +5 phút</span>
                   </button>
                   <button type="button" className="rs-opt" onClick={() => void extendDeadline(15)}>
-                    <span className="rs-oi"><Timer aria-hidden /></span>
+                    <span className="rs-oi"><Timer width={17} height={17} strokeWidth={1.9} className="shrink-0" aria-hidden /></span>
                     <span className="rs-grow">Gia hạn +15 phút</span>
                   </button>
                   <button type="button" className="rs-opt danger" onClick={askEnd}>
-                    <span className="rs-oi"><Flag aria-hidden /></span>
+                    <span className="rs-oi"><Flag width={17} height={17} strokeWidth={1.9} className="shrink-0" aria-hidden /></span>
                     <span className="rs-grow">
                       Kết thúc {roundTitle} ngay
                       <small>
@@ -304,7 +304,7 @@ export function HostMenu() {
                 <h3>Điều khiển vote</h3>
                 <div className="rs-list">
                   <button type="button" className="rs-opt danger" onClick={askCloseQuick}>
-                    <span className="rs-oi"><Flag aria-hidden /></span>
+                    <span className="rs-oi"><Flag width={17} height={17} strokeWidth={1.9} className="shrink-0" aria-hidden /></span>
                     <span className="rs-grow">
                       Chốt kết quả
                       <small>Khóa vote và công bố lựa chọn thắng</small>
@@ -319,7 +319,7 @@ export function HostMenu() {
                 <h3>Điều khiển vote</h3>
                 <div className="rs-list">
                   <button type="button" className="rs-opt" onClick={askReopenQuick}>
-                    <span className="rs-oi"><RotateCcw aria-hidden /></span>
+                    <span className="rs-oi"><RotateCcw width={17} height={17} strokeWidth={1.9} className="shrink-0" aria-hidden /></span>
                     <span className="rs-grow">
                       Mở lại vote
                       <small>Xoá kết quả chốt, cho vote tiếp</small>
@@ -339,7 +339,7 @@ export function HostMenu() {
                   aria-checked={bundle.room.locked}
                   onClick={() => void setLocked(!bundle.room.locked)}
                 >
-                  <span className="rs-oi"><Lock aria-hidden /></span>
+                  <span className="rs-oi"><Lock width={17} height={17} strokeWidth={1.9} className="shrink-0" aria-hidden /></span>
                   <span className="rs-grow">
                     Khóa phòng
                     <small>Không nhận thêm người mới</small>
@@ -353,7 +353,7 @@ export function HostMenu() {
                   aria-checked={bundle.room.has_password}
                   onClick={togglePassword}
                 >
-                  <span className="rs-oi"><KeyRound aria-hidden /></span>
+                  <span className="rs-oi"><KeyRound width={17} height={17} strokeWidth={1.9} className="shrink-0" aria-hidden /></span>
                   <span className="rs-grow">
                     Mật khẩu phòng
                     <small>
@@ -364,7 +364,7 @@ export function HostMenu() {
                 </button>
                 {bundle.room.has_password && !pwEditing ? (
                   <button type="button" className="rs-opt" onClick={() => setPwEditing(true)}>
-                    <span className="rs-oi"><Pencil aria-hidden /></span>
+                    <span className="rs-oi"><Pencil width={17} height={17} strokeWidth={1.9} className="shrink-0" aria-hidden /></span>
                     <span className="rs-grow">Đổi mật khẩu</span>
                   </button>
                 ) : null}
@@ -404,7 +404,7 @@ export function HostMenu() {
                   </form>
                 ) : null}
                 <button type="button" className="rs-opt" onClick={() => void copyInvite()}>
-                  <span className="rs-oi"><Link2 aria-hidden /></span>
+                  <span className="rs-oi"><Link2 width={17} height={17} strokeWidth={1.9} className="shrink-0" aria-hidden /></span>
                   <span className="rs-grow">Copy link mời</span>
                 </button>
                 {inLobbyish ? (
@@ -415,7 +415,7 @@ export function HostMenu() {
                     aria-checked={bundle.room.allow_member_upload}
                     onClick={() => void setMemberUpload(!bundle.room.allow_member_upload)}
                   >
-                    <span className="rs-oi"><ImagePlus aria-hidden /></span>
+                    <span className="rs-oi"><ImagePlus width={17} height={17} strokeWidth={1.9} className="shrink-0" aria-hidden /></span>
                     <span className="rs-grow">
                       Thành viên được tải mẫu
                       <small>Tắt thì chỉ chủ phòng tải ảnh</small>
@@ -431,7 +431,7 @@ export function HostMenu() {
                     aria-checked={bundle.room.allow_member_options}
                     onClick={() => void setMemberOptions(!bundle.room.allow_member_options)}
                   >
-                    <span className="rs-oi"><ListPlus aria-hidden /></span>
+                    <span className="rs-oi"><ListPlus width={17} height={17} strokeWidth={1.9} className="shrink-0" aria-hidden /></span>
                     <span className="rs-grow">
                       Thành viên được thêm lựa chọn
                       <small>Tắt thì chỉ chủ phòng thêm</small>
@@ -446,7 +446,7 @@ export function HostMenu() {
                   aria-checked={bundle.room.anonymous}
                   onClick={() => void setAnonymous(!bundle.room.anonymous)}
                 >
-                  <span className="rs-oi"><Lock aria-hidden /></span>
+                  <span className="rs-oi"><Lock width={17} height={17} strokeWidth={1.9} className="shrink-0" aria-hidden /></span>
                   <span className="rs-grow">
                     Vote ẩn danh
                     <small>Không ai thấy ai chọn gì, kể cả chủ phòng</small>
@@ -481,7 +481,7 @@ export function HostMenu() {
                     aria-checked={seeding === "manual"}
                     onClick={() => void setSeedingMode(seeding === "manual" ? "random" : "manual")}
                   >
-                    <span className="rs-oi"><Wand2 aria-hidden /></span>
+                    <span className="rs-oi"><Wand2 width={17} height={17} strokeWidth={1.9} className="shrink-0" aria-hidden /></span>
                     <span className="rs-grow">
                       Chủ phòng tự xếp nhánh
                       <small>Đổi chỗ mẫu trên sơ đồ trước khi bắt đầu</small>
@@ -491,7 +491,7 @@ export function HostMenu() {
                 ) : null}
                 {canShuffle ? (
                   <button type="button" className="rs-opt" onClick={() => void shuffleBracket()}>
-                    <span className="rs-oi"><Shuffle aria-hidden /></span>
+                    <span className="rs-oi"><Shuffle width={17} height={17} strokeWidth={1.9} className="shrink-0" aria-hidden /></span>
                     <span className="rs-grow">Xáo lại nhánh</span>
                   </button>
                 ) : null}
@@ -563,7 +563,7 @@ export function HostMenu() {
         aria-expanded={open}
         onClick={() => setOpen(true)}
       >
-        <Settings aria-hidden strokeWidth={1.9} />
+        <Settings width={20} height={20} strokeWidth={1.9} className="shrink-0" aria-hidden />
       </button>
       {layer}
     </>

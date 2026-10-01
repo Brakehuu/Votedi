@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ZoomIcon } from "@/components/icons/zoom-icon";
+import { ZoomButton } from "@/components/ui/zoom-button";
 
 type Side = "a" | "b";
 type Voter = { id: string; letter: string; color: string; fresh?: boolean };
@@ -11,7 +11,7 @@ const COLORS: Record<Side, string> = { a: "#0EA5A4", b: "#0C1B20" };
 
 function Tee({ fill, className }: { fill: string; className?: string }) {
   return (
-    <svg viewBox="0 0 100 100" className={className} style={{ fill }} aria-hidden>
+    <svg viewBox="0 0 100 100" width={88} height={88} className={className} style={{ fill }} aria-hidden>
       <path d="M34 14 44 10c2 5 10 5 12 0l10 4 20 13-8 15-10-5v51H32V37l-10 5-8-15z" />
     </svg>
   );
@@ -94,7 +94,7 @@ export function MatchDemo() {
             <span>Phòng Áo team 2026</span>
           </div>
           <span className="timer">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+            <svg viewBox="0 0 16 16" width={14} height={14} fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden className="shrink-0">
               <circle cx="8" cy="9" r="5.5" />
               <path d="M8 6.5V9l1.6 1.2M6.5 2h3" strokeLinecap="round" />
             </svg>
@@ -189,12 +189,12 @@ function Pick({
 }) {
   return (
     <div className={chosen ? "pick chosen" : "pick"}>
-      <button type="button" className="shot" aria-label={`Xem to ${label}`} onClick={onView}>
-        <Tee fill={fill} className="tee" />
-        <span className="zoom" aria-hidden>
-          <ZoomIcon />
-        </span>
-      </button>
+      <div className="relative">
+        <button type="button" className="shot" aria-label={`Xem to ${label}`} onClick={onView}>
+          <Tee fill={fill} className="tee" />
+        </button>
+        <ZoomButton label={label} onClick={onView} className="!top-[7px] !right-[7px]" />
+      </div>
       <div className="pick-name">
         {label} <small>{votes} phiếu</small>
       </div>

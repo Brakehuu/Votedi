@@ -11,7 +11,7 @@ import { ImageLightbox } from "@/components/room/image-lightbox";
 import { ReactionBar } from "@/components/room/reaction-bar";
 import { useRoom } from "@/components/room/room-context";
 import { VoterStack } from "@/components/room/voter-stack";
-import { ZoomIcon } from "@/components/icons/zoom-icon";
+import { ZoomButton } from "@/components/ui/zoom-button";
 import { FORMATS } from "@/lib/formats";
 import { uploadPublicImage } from "@/lib/storage";
 import type { Member } from "@/lib/types";
@@ -336,12 +336,12 @@ export function QuickVoteView() {
               >
                 <div className="ql-rank">{index + 1}</div>
                 {isImage ? (
-                  <button type="button" className="ql-thumb" aria-label={`Xem to ${title}`} onClick={() => setLbId(item.id)}>
-                    <OptionMedia option={item} />
-                    <span className="ql-zoom" aria-hidden>
-                      <ZoomIcon />
-                    </span>
-                  </button>
+                  <div className="relative shrink-0">
+                    <button type="button" className="ql-thumb" aria-label={`Xem to ${title}`} onClick={() => setLbId(item.id)}>
+                      <OptionMedia option={item} />
+                    </button>
+                    <ZoomButton label={title} size="sm" onClick={() => setLbId(item.id)} />
+                  </div>
                 ) : (
                   <span className="ql-thumb cursor-default">
                     <OptionMedia option={item} size="sm" />
@@ -412,7 +412,11 @@ export function QuickVoteView() {
                     aria-pressed={selected}
                     onClick={() => onPick(item.id)}
                   >
-                    {selected ? <Check aria-hidden /> : <Plus aria-hidden />}
+                    {selected ? (
+                      <Check width={16} height={16} strokeWidth={2} className="shrink-0" aria-hidden />
+                    ) : (
+                      <Plus width={16} height={16} strokeWidth={2} className="shrink-0" aria-hidden />
+                    )}
                     <span className="t">{selected ? "Đã chọn" : "Chọn"}</span>
                   </button>
                 )}

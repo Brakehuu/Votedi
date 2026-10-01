@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Countdown } from "@/components/room/countdown";
 import { MemberAvatar } from "@/components/room/member-avatar";
 import { useRoom } from "@/components/room/room-context";
-import { ZoomIcon } from "@/components/icons/zoom-icon";
+import { ZoomButton } from "@/components/ui/zoom-button";
 import { ImageLightbox } from "@/components/room/image-lightbox";
 import { splitGroups } from "@/lib/group-knockout";
 import { cn } from "@/lib/utils";
@@ -312,18 +312,18 @@ export function QualifyView() {
                   data-ql-id={item.id}
                 >
                   <div className="ql-rank">{index + 1}</div>
-                  <button
-                    type="button"
-                    className="ql-thumb"
-                    aria-label={`Xem to ${item.title || "mẫu"}`}
-                    onClick={() => setLbId(item.id)}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={item.image_url ?? undefined} alt="" className={cn(item.is_transparent && "drop-shadow")} />
-                    <span className="ql-zoom" aria-hidden>
-                      <ZoomIcon />
-                    </span>
-                  </button>
+                  <div className="relative shrink-0">
+                    <button
+                      type="button"
+                      className="ql-thumb"
+                      aria-label={`Xem to ${item.title || "mẫu"}`}
+                      onClick={() => setLbId(item.id)}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={item.image_url ?? undefined} alt="" className={cn(item.is_transparent && "drop-shadow")} />
+                    </button>
+                    <ZoomButton label={item.title || "mẫu"} size="sm" onClick={() => setLbId(item.id)} />
+                  </div>
                   <div className="ql-info">
                     <b>{item.title || "Mẫu"}</b>
                     <div className="ql-meta">
@@ -352,14 +352,14 @@ export function QualifyView() {
           const dim = left <= 0 && !selected;
           return (
             <div key={item.id} className={cn("ql-card", inTop && "in", selected && "mine")}>
-              <button type="button" className="ql-img" aria-label={`Xem to ${item.title || "mẫu"}`} onClick={() => setLbId(item.id)}>
-                <span className="ql-badge">#{index + 1}</span>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={item.image_url ?? undefined} alt="" className={cn(item.is_transparent && "drop-shadow")} />
-                <span className="ql-zoom" aria-hidden>
-                  <ZoomIcon />
-                </span>
-              </button>
+              <div className="relative">
+                <button type="button" className="ql-img" aria-label={`Xem to ${item.title || "mẫu"}`} onClick={() => setLbId(item.id)}>
+                  <span className="ql-badge">#{index + 1}</span>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={item.image_url ?? undefined} alt="" className={cn(item.is_transparent && "drop-shadow")} />
+                </button>
+                <ZoomButton label={item.title || "mẫu"} onClick={() => setLbId(item.id)} />
+              </div>
               <b>{item.title || "Mẫu"}</b>
               <div className="ql-meta">
                 <div className="ql-pbar">
@@ -406,12 +406,16 @@ export function QualifyView() {
         startId={lbId ?? ""}
         items={ranked.length > 0 ? ranked : bundle.items}
         onClose={() => setLbId(null)}
-        chosenId={lbId && mine.has(lbId) ? lbId : null}
-        canVote={Boolean(lbItem)}
-        onVote={(itemId) => void onPick(itemId)}
         voteCounts={voteCounts}
         keepOpen
         selectedIds={mine}
+        context={{
+          mode: "qualify",
+          remaining: left,
+          chosenId: lbId && mine.has(lbId) ? lbId : null,
+          canVote: true,
+          onVote: (itemId) => void onPick(itemId),
+        }}
       />
     </div>
   );

@@ -161,11 +161,12 @@ export function LobbyView() {
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {bundle.items.map((item) => (
+            {bundle.items.map((item, index) => (
                 <ItemGridCard
                   key={item.id}
                   item={item}
                   items={bundle.items}
+                  index={index}
                   canDelete={me.is_host || item.uploader_member_id === me.id}
                   canRename={me.is_host}
                   onDelete={removeItem}

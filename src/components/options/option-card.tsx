@@ -1,7 +1,7 @@
 "use client";
 
+import { ZoomButton } from "@/components/ui/zoom-button";
 import { ExternalLink, MapPin, Navigation, RefreshCw } from "lucide-react";
-import { ZoomIcon } from "@/components/icons/zoom-icon";
 import { PlaceMapEmbed, directionsUrl } from "@/components/options/place-map";
 import type { Item, LinkData, PlaceData } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -48,7 +48,7 @@ export function OptionMedia({
   if (option.item_type === "place") {
     return (
       <span className={cn("opt-media opt-media-text opt-place", `opt-${size}`, className)} aria-hidden>
-        <MapPin />
+        <MapPin width={28} height={28} strokeWidth={2} className="shrink-0" aria-hidden />
       </span>
     );
   }
@@ -221,14 +221,14 @@ export function OptionCard({
 
   return (
     <article className={cn("opt-card", selected && "on", className)}>
-      <div className="opt-card-media">
+      <div className="opt-card-media relative">
         {zoomable ? (
-          <button type="button" className="opt-zoom-btn" aria-label={`Xem to ${title}`} onClick={onZoom}>
-            <OptionMedia option={option} size="lg" />
-            <span className="ql-zoom" aria-hidden>
-              <ZoomIcon />
-            </span>
-          </button>
+          <>
+            <button type="button" className="opt-zoom-btn" aria-label={`Xem to ${title}`} onClick={onZoom}>
+              <OptionMedia option={option} size="lg" />
+            </button>
+            <ZoomButton label={title} onClick={onZoom} />
+          </>
         ) : (
           <OptionMedia option={option} size="lg" />
         )}

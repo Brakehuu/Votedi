@@ -22,13 +22,13 @@ export function FeaturesSection() {
           <div className="vis" aria-hidden>
             <div className="map">
               <span className="pt" style={{ left: "34%", top: "30%" }}>
-                <MapPin />
+                <MapPin width={15} height={15} strokeWidth={2.4} className="shrink-0" aria-hidden />
               </span>
               <span className="pt" style={{ left: "64%", top: "46%" }}>
-                <MapPin />
+                <MapPin width={15} height={15} strokeWidth={2.4} className="shrink-0" aria-hidden />
               </span>
               <span className="pt" style={{ left: "80%", top: "18%" }}>
-                <MapPin />
+                <MapPin width={15} height={15} strokeWidth={2.4} className="shrink-0" aria-hidden />
               </span>
               <div className="card">
                 <div>

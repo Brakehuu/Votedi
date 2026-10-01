@@ -3,15 +3,16 @@ import type { ReactNode } from "react";
 import { Be_Vietnam_Pro } from "next/font/google";
 import { Mesh, SiteHeader } from "@/components/site-header";
 import { Providers } from "@/components/providers";
+import { FontReady } from "@/components/font-ready";
 import { organizationGraph, websiteGraph, jsonLd } from "@/lib/seo";
 import { siteDescription, siteTitle, siteUrl } from "@/lib/site";
 import "./globals.css";
 
 const beVietnam = Be_Vietnam_Pro({
-  subsets: ["vietnamese"],
-  weight: ["400", "600", "700", "800"],
+  subsets: ["latin", "latin-ext", "vietnamese"],
+  weight: ["400", "500", "600", "700", "800"],
   variable: "--font-be-vietnam",
-  display: "optional",
+  display: "swap",
   preload: true,
   adjustFontFallback: true,
 });
@@ -54,7 +55,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="vi" suppressHydrationWarning data-scroll-behavior="smooth" className={beVietnam.variable}>
       <body
         suppressHydrationWarning
-        className="min-h-screen bg-background font-sans text-foreground antialiased"
+        className={`${beVietnam.className} min-h-screen bg-background font-sans text-foreground antialiased`}
       >
         <script
           type="application/ld+json"
@@ -63,6 +64,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             "@graph": [organizationGraph(), websiteGraph()],
           })}
         />
+        <FontReady />
         <Providers>
           <Mesh />
           <div>

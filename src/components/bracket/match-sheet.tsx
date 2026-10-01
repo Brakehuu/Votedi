@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ZoomIcon } from "@/components/icons/zoom-icon";
 import { Countdown } from "@/components/room/countdown";
 import { ImageLightbox } from "@/components/room/image-lightbox";
 import { MemberAvatar } from "@/components/room/member-avatar";
 import { Button } from "@/components/ui/button";
+import { ZoomButton } from "@/components/ui/zoom-button";
 import { roundLabel } from "@/lib/bracket";
 import type { Item, Match, MatchVote, Member } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -246,17 +246,17 @@ function Pick({
 
   return (
     <div className={cn("ko-pick", chosen && "chosen", won && "won", lost && "lost")}>
-      <button type="button" className="ko-shot" aria-label={`Xem to ${item.title || "mẫu"}`} onClick={onView}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={item.image_url ?? undefined}
-          alt={item.title || "Mẫu"}
-          className={cn(item.is_transparent && "drop-shadow-lg")}
-        />
-        <span className="zoom" aria-hidden>
-          <ZoomIcon />
-        </span>
-      </button>
+      <div className="relative">
+        <button type="button" className="ko-shot" aria-label={`Xem to ${item.title || "mẫu"}`} onClick={onView}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={item.image_url ?? undefined}
+            alt={item.title || "Mẫu"}
+            className={cn(item.is_transparent && "drop-shadow-lg")}
+          />
+        </button>
+        <ZoomButton label={item.title || "mẫu"} onClick={onView} />
+      </div>
       <div className="ko-p-name">
         {item.title || "Mẫu"}
         <small>{votes} phiếu</small>

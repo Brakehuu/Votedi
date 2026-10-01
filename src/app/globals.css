@@ -4,10 +4,38 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Icon SVG mặc định không phình theo flex/grid cha */
+svg {
+  flex-shrink: 0;
+}
+
+/*
+ * Letter-spacing âm chỉ khi Be Vietnam Pro đã tải.
+ * font-display:swap + fallback metrics: chữ dính nếu tracking âm trên font hệ thống.
+ */
+html:not(.fonts-ready) h1,
+html:not(.fonts-ready) h2,
+html:not(.fonts-ready) h3,
+html:not(.fonts-ready) .brand,
+html:not(.fonts-ready) .tracking-tight,
+html:not(.fonts-ready) .home h1 .q,
+html:not(.fonts-ready) .home h1 .a,
+html:not(.fonts-ready) .home .sec-h h2,
+html:not(.fonts-ready) .home .fin h2,
+html:not(.fonts-ready) .blog-hero h1,
+html:not(.fonts-ready) .blog-prose-h2,
+html:not(.fonts-ready) .blog-prose-h3,
+html:not(.fonts-ready) .blog-feat-tx h2,
+html:not(.fonts-ready) .blog-band h2,
+html:not(.fonts-ready) .blog-ph h1,
+html:not(.fonts-ready) .guide-start-card .n {
+  letter-spacing: 0 !important;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-be-vietnam), "Be Vietnam Pro", sans-serif;
+  --font-sans: var(--font-be-vietnam), "Be Vietnam Pro", "Segoe UI", system-ui, sans-serif;
   --font-heading: var(--font-sans);
   --color-ring: var(--ring);
   --color-input: var(--input);

@@ -2,15 +2,23 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { CalendarDays, MapPin, Trophy } from "lucide-react";
+import { ZoomButton } from "@/components/ui/zoom-button";
 
 type Side = "a" | "b";
 type Voter = { id: string; letter: string; color: string };
 
 const INTERVAL_MS = 6500;
 
-function Tee({ color }: { color: string }) {
+function Tee({ color, size = 88 }: { color: string; size?: number }) {
   return (
-    <svg viewBox="0 0 100 100" className="tee" style={{ color }} aria-hidden>
+    <svg
+      viewBox="0 0 100 100"
+      width={size}
+      height={size}
+      className="tee shrink-0"
+      style={{ color }}
+      aria-hidden
+    >
       <path d="M34 14 44 10c2 5 10 5 12 0l10 4 20 13-8 15-10-5v51H32V37l-10 5-8-15z" />
     </svg>
   );
@@ -65,6 +73,7 @@ export function HeroShowcase() {
   const [seconds, setSeconds] = useState(261);
   const [votes, setVotes] = useState({ a: 3, b: 2 });
   const [mine, setMine] = useState<Side | null>(null);
+  const [lb, setLb] = useState<{ name: string; color: string } | null>(null);
   const [people, setPeople] = useState<{ a: Voter[]; b: Voter[] }>({
     a: [
       { id: "m", letter: "M", color: "#F59E0B" },
@@ -76,6 +85,15 @@ export function HeroShowcase() {
       { id: "p", letter: "P", color: "#10B981" },
     ],
   });
+  useEffect(() => {
+    if (!lb) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setLb(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lb]);
+
   const reduceRef = useRef(false);
   const tabId = useId();
 
@@ -166,6 +184,7 @@ export function HeroShowcase() {
                 people={people.a}
                 chosen={mine === "a"}
                 onVote={() => vote("a")}
+                onZoom={() => setLb({ name: "Mẫu Ngọc", color: "#0EA5A4" })}
               />
               <div className="vs">VS</div>
               <Pick
@@ -176,6 +195,7 @@ export function HeroShowcase() {
                 people={people.b}
                 chosen={mine === "b"}
                 onVote={() => vote("b")}
+                onZoom={() => setLb({ name: "Mẫu Đen", color: "#0C1B20" })}
               />
             </div>
             <div className="mf">
@@ -283,6 +303,32 @@ export function HeroShowcase() {
           </button>
         ))}
       </div>
+
+      {lb ? (
+        <div
+          className="fixed inset-0 z-[90] flex flex-col items-center justify-center bg-[rgba(7,18,22,.9)] backdrop-blur-[22px]"
+          role="dialog"
+          aria-modal
+          aria-label="Xem ảnh mẫu"
+          onClick={() => setLb(null)}
+        >
+          <button
+            type="button"
+            className="absolute top-[calc(12px+env(safe-area-inset-top,0px))] right-3 grid size-11 place-items-center rounded-full bg-white/20 text-2xl leading-none text-white"
+            aria-label="Đóng"
+            onClick={(event) => {
+              event.stopPropagation();
+              setLb(null);
+            }}
+          >
+            ×
+          </button>
+          <div className="home-lb-img grid max-h-[70dvh] max-w-[min(92vw,420px)] place-items-center" onClick={(event) => event.stopPropagation()}>
+            <Tee color={lb.color} size={220} />
+          </div>
+          <p className="mt-4 text-base font-bold text-white">{lb.name}</p>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -295,6 +341,7 @@ function Pick({
   people,
   chosen,
   onVote,
+  onZoom,
 }: {
   name: string;
   color: string;
@@ -303,11 +350,15 @@ function Pick({
   people: Voter[];
   chosen: boolean;
   onVote: () => void;
+  onZoom: () => void;
 }) {
   return (
     <div className={`pick ${chosen ? "chosen" : ""}`}>
-      <div className="shot">
-        <Tee color={color} />
+      <div className="relative">
+        <button type="button" className="shot" aria-label={`Xem to ${name}`} onClick={onZoom}>
+          <Tee color={color} />
+        </button>
+        <ZoomButton label={name} onClick={onZoom} className="!top-[7px] !right-[7px]" />
       </div>
       <div className="pn">
         {name}

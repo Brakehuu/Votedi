@@ -69,11 +69,11 @@ export function SharePanel({
       {passwordNote ? <p className="text-sm text-muted-foreground">{passwordNote}</p> : null}
       <div className="grid grid-cols-2 gap-2">
         <Button type="button" variant="outline" onClick={() => url && copy(url, "link")}>
-          <Copy />
+          <Copy width={16} height={16} strokeWidth={2} className="shrink-0" aria-hidden />
           Copy link
         </Button>
         <Button type="button" onClick={share}>
-          <Share2 />
+          <Share2 width={16} height={16} strokeWidth={2} className="shrink-0" aria-hidden />
           Chia sẻ
         </Button>
         <a
