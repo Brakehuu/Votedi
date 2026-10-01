@@ -18,6 +18,13 @@ test.describe("scroll restoration", () => {
     await assertTop(page);
   });
 
+  test("/ → /mau stays at top", async ({ page }) => {
+    await page.goto("/");
+    await page.locator('header a[href="/mau"]').first().click();
+    await page.waitForURL("**/mau");
+    await assertTop(page);
+  });
+
   test("/blog → article stays at top", async ({ page }) => {
     await page.goto("/blog");
     await page.locator(`a[href="${POST}"]`).first().click();
