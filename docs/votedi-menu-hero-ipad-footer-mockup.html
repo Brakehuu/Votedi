@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vote Đi – Mockup menu mobile, hero iPad, footer</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F3F8F8;--ink:#0C1B20;--muted:#4A6066;--muted2:#5C7176;--line:#DCE8E8;--jade:#0EA5A4;--jd:#0B7F7A;--soft:#E3F6F5;--grad:linear-gradient(135deg,#19C9A7 0%,#0EA5A4 45%,#0891B2 100%)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Be Vietnam Pro",system-ui,sans-serif;background:#DDE6E8;color:var(--ink);line-height:1.5;padding-top:52px;min-height:100vh}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+a{color:inherit;text-decoration:none}
+svg{display:block;flex-shrink:0}
+.ico{stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tabs{position:fixed;top:0;left:0;right:0;height:52px;background:#0C1B20;z-index:99;display:flex;gap:6px;align-items:center;justify-content:center;padding:0 10px;overflow-x:auto}
+.tabs button{height:34px;padding:0 15px;border-radius:99px;font-size:13.5px;font-weight:600;color:#9FB6BA;white-space:nowrap}
+.tabs button.on{background:#fff;color:var(--ink)}
+.stage{display:flex;flex-direction:column;align-items:center;padding:22px 12px 60px;gap:16px}
+.bar{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.bar button{height:36px;padding:0 16px;border-radius:99px;background:#fff;border:1.5px solid #C5D6D6;font-weight:600;font-size:13.5px}
+.bar button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.note{max-width:720px;text-align:center;font-size:13.5px;color:#4A6066}
+[hidden]{display:none!important}
+/* ---------- site tokens (light/dark) ---------- */
+.site{--s-bg:#F3F8F8;--s-ink:#0C1B20;--s-text:#1E3238;--s-muted:#4A6066;--s-muted2:#5C7176;--s-line:#DCE8E8;--s-card:#fff;--s-glass:rgba(255,255,255,.78)}
+.site[data-theme=dark]{--s-bg:#0A1519;--s-ink:#F2F8F8;--s-text:#DCE8E8;--s-muted:#B4C8CC;--s-muted2:#8FA8AD;--s-line:#223941;--s-card:#102027;--s-glass:rgba(16,32,39,.82)}
+.site{background:var(--s-bg);color:var(--s-ink);position:relative;overflow:hidden}
+.mesh{position:absolute;inset:0;pointer-events:none}
+.mesh i{position:absolute;border-radius:50%;filter:blur(90px)}
+.mesh i:nth-child(1){width:340px;height:340px;background:#19C9A7;left:-120px;top:-140px;opacity:.28}
+.mesh i:nth-child(2){width:320px;height:320px;background:#38BDF8;right:-140px;top:60px;opacity:.2}
+.site[data-theme=dark] .mesh i{opacity:.14}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.02em}
+.logo i{width:36px;height:36px;border-radius:11px;background:var(--grad);display:grid;place-items:center}
+.logo b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:50px;padding:0 24px;border-radius:99px;font-weight:700;font-size:16px;white-space:nowrap}
+.btn-p{color:#fff;background:var(--grad);box-shadow:0 0 0 4px rgba(14,165,164,.14),0 12px 26px -12px rgba(8,145,178,.8)}
+.btn-g{background:var(--s-card);border:1.5px solid var(--s-line);color:var(--s-ink)}
+/* ================= 1. MOBILE MENU ================= */
+.phone{position:relative;width:390px;height:844px;border-radius:44px;background:#0C1B20;padding:10px;box-shadow:0 40px 80px -30px rgba(0,0,0,.5)}
+.phone .site{width:100%;height:100%;border-radius:36px}
+.page{position:absolute;inset:0;padding:16px}
+.page .nav{display:flex;align-items:center;justify-content:space-between;height:60px;padding:0 14px;border-radius:20px;background:var(--s-glass);backdrop-filter:blur(14px)}
+.burger{width:44px;height:44px;border-radius:14px;display:grid;place-items:center}
+.burger svg{width:22px;height:22px}
+.page h1{margin-top:34px;font-size:30px;line-height:1.15;letter-spacing:-.035em;font-weight:800}
+.page p{margin-top:12px;color:var(--s-muted);font-size:15px}
+.scrim{position:absolute;inset:0;background:rgba(7,18,22,.42);opacity:0;pointer-events:none;transition:opacity .3s;z-index:5}
+.drawer{position:absolute;inset:0 0 0 0;z-index:6;display:flex;flex-direction:column;background:var(--s-bg);transform:translateY(-8%);opacity:0;pointer-events:none;transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .25s}
+.open .scrim{opacity:1;pointer-events:auto}
+.open .drawer{transform:none;opacity:1;pointer-events:auto}
+.dh{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 4px 20px;height:64px}
+.dscroll{flex:1;overflow-y:auto;padding:4px 20px 12px;overscroll-behavior:contain}
+.lab{display:block;margin:14px 2px 8px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--s-muted2)}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ft{display:flex;align-items:center;gap:11px;min-height:52px;padding:9px 12px 9px 10px;border-radius:18px;background:var(--s-card);border:1.5px solid var(--s-line);font-size:14.5px;font-weight:700;line-height:1.25;letter-spacing:-.01em}
+.ft:active{transform:scale(.98)}
+.ft .ti{width:36px;height:36px;border-radius:12px;background:var(--soft);color:var(--jd);display:grid;place-items:center}
+.site[data-theme=dark] .ft .ti{background:rgba(25,201,167,.16);color:#5EE0C4}
+.ft .ti svg{width:20px;height:20px}
+.all{display:flex;align-items:center;justify-content:space-between;margin-top:6px;height:40px;padding:0 6px 0 2px;font-weight:700;font-size:15px;color:var(--jd)}
+.site[data-theme=dark] .all{color:#5EE0C4}
+.all svg{width:18px;height:18px}
+.row{display:flex;align-items:center;gap:14px;height:46px;padding:0 4px 0 2px;border-bottom:1px solid var(--s-line);font-size:16.5px;font-weight:600;letter-spacing:-.01em}
+.row:last-child{border-bottom:0}
+.row .ri{width:22px;height:22px;color:var(--s-muted2)}
+.row .ch{margin-left:auto;width:18px;height:18px;color:var(--s-muted2)}
+.dfoot{padding:12px 20px calc(16px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--s-line);background:var(--s-bg);display:grid;gap:10px}
+.theme{display:flex;align-items:center;justify-content:space-between;height:44px;font-size:15px;font-weight:600;color:var(--s-text)}
+.theme span{display:flex;align-items:center;gap:10px}
+.sw{position:relative;width:50px;height:30px;border-radius:15px;background:#C5D6D6;transition:background .2s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);transition:transform .2s}
+.sw.on{background:var(--jade)}.sw.on::after{transform:translateX(20px)}
+.dfoot .btn{width:100%}
+/* ================= 2. HERO ================= */
+.dev{transform-origin:top center}
+.hero{position:relative;padding:34px 40px 48px}
+.hero .wrap{position:relative;display:grid;gap:34px;justify-items:center;text-align:center;max-width:1180px;margin:0 auto}
+.proof{display:inline-flex;align-items:center;gap:10px;height:40px;padding:0 16px 0 6px;border-radius:99px;background:var(--s-glass);border:1px solid var(--s-line);font-size:14px;font-weight:600;color:var(--s-text)}
+.proof .st{display:flex}.av{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff;border:2px solid #fff;margin-left:-8px}.st .av:first-child{margin-left:0}
+.proof .dot{width:8px;height:8px;border-radius:50%;background:#22C55E;box-shadow:0 0 0 3px rgba(34,197,94,.2)}
+.hero h1{font-size:var(--h1,44px);line-height:1.1;font-weight:800;letter-spacing:-.04em;text-wrap:balance}
+.hero h1 .g{display:block;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.h1b{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:14px;font-size:var(--h1,44px);font-weight:800;letter-spacing:-.04em;line-height:1.1}
+.pill{display:inline-block;padding:2px 22px 8px;border-radius:20px;background:var(--grad);color:#fff;transform:rotate(-2deg);box-shadow:0 18px 30px -16px rgba(8,145,178,.7)}
+.lead{margin-top:20px;font-size:var(--lead,18px);color:var(--s-muted);max-width:560px}
+.lead b{color:var(--s-ink)}
+.ctas{margin-top:26px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.ticks{margin-top:18px;display:flex;gap:8px 20px;justify-content:center;flex-wrap:wrap;font-size:14.5px;font-weight:600;color:var(--s-muted)}
+.ticks span{display:flex;align-items:center;gap:6px}.ticks svg{width:16px;height:16px;color:var(--jd)}
+.demo{width:min(100%,560px)}
+.dcard{position:relative;padding:22px;border-radius:30px;background:var(--s-card);border:1px solid var(--s-line);box-shadow:0 40px 70px -40px rgba(8,80,90,.45),0 2px 6px rgba(8,80,90,.06);text-align:left}
+.dchip{position:absolute;left:18px;top:-18px;display:flex;align-items:center;gap:8px;height:36px;padding:0 14px 0 5px;border-radius:99px;background:var(--s-card);border:1px solid var(--s-line);font-size:13px;font-weight:700;box-shadow:0 10px 20px -12px rgba(8,80,90,.5)}
+.dchip .av{width:26px;height:26px;margin:0;border:0}
+.dq{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-top:6px}
+.dq b{display:block;font-size:20px;letter-spacing:-.02em;line-height:1.25}.dq small{font-size:13.5px;color:var(--s-muted2)}
+.tag{padding:5px 14px;border-radius:99px;background:#FFF1D6;color:#9A5B00;font-size:13px;font-weight:700;white-space:nowrap}
+.opt{display:grid;grid-template-columns:54px 1fr auto;gap:14px;align-items:center;margin-top:12px;padding:10px 16px 10px 10px;border-radius:20px;background:var(--s-card);border:1.5px solid var(--s-line)}
+.opt.top{border-color:#7AD6CC;box-shadow:0 0 0 4px rgba(14,165,164,.09)}
+.opt .im{width:54px;height:54px;border-radius:15px;display:grid;place-items:center;color:#fff}
+.opt .im svg{width:22px;height:22px}
+.opt b{display:block;font-size:16.5px;letter-spacing:-.01em}.opt small{display:block;font-size:13px;color:var(--s-muted2)}
+.opt .n{text-align:right;font-size:26px;font-weight:800;line-height:1;letter-spacing:-.03em}.opt .n small{display:block;font-size:12.5px;font-weight:600;margin-top:2px}
+.dfoot2{display:flex;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid var(--s-line);font-size:13.5px;color:var(--s-muted2)}
+.seg{margin-top:16px;display:inline-flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.seg span{display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 16px;border-radius:99px;background:var(--s-card);border:1.5px solid var(--s-line);font-size:14.5px;font-weight:600;color:var(--s-text)}
+.seg span.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.seg svg{width:16px;height:16px}
+/* >= 1024: two columns */
+.dev.wide .hero{padding:48px 48px 56px}
+.dev.wide .wrap{grid-template-columns:1fr 440px;gap:44px;justify-items:stretch;text-align:left;align-items:center}
+.dev.wide .h1b{justify-content:flex-start}
+.dev.wide .ctas,.dev.wide .ticks{justify-content:flex-start}
+.dev.wide .lead{max-width:520px}
+.dev.wide .demo{width:100%;max-width:460px;justify-self:end}
+.dev.wide .seg{display:flex;justify-content:center}
+/* ================= 3. FOOTER ================= */
+.fwrap{display:grid;grid-template-columns:1fr 1fr;gap:20px;width:min(1180px,100%)}
+.foot{padding:40px 36px 24px;border-radius:30px;border:1px solid var(--s-line)}
+.fgrid2{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:26px}
+.foot h5{font-size:12.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--s-ink)}
+.foot a{display:block;margin-top:12px;font-size:15px;color:var(--s-muted);transition:color .15s}
+.foot a:hover{color:var(--jd)}
+.site[data-theme=dark] .foot a:hover{color:#5EE0C4}
+.foot p{margin-top:14px;font-size:14.5px;color:var(--s-muted);max-width:300px}
+.copy{margin-top:30px;padding-top:18px;border-top:1px solid var(--s-line);font-size:13.5px;color:var(--s-muted2)}
+.cr{margin-top:6px;font-size:12.5px;font-weight:700;color:var(--s-muted2)}
+@media (max-width:900px){.fwrap{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+ <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+ <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></symbol>
+ <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></symbol>
+ <symbol id="i-cup" viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3"/></symbol>
+ <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
+ <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5zM3 13l9 5 9-5"/></symbol>
+ <symbol id="i-bars" viewBox="0 0 24 24"><path d="M6 20V10M12 20V4M18 20v-7"/></symbol>
+ <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></symbol>
+ <symbol id="i-arr" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+ <symbol id="i-ch" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+ <symbol id="i-tpl" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M9 9v11"/></symbol>
+ <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5zM4 5.5V21M8 7h8"/></symbol>
+ <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16zM13.5 6.5l4 4"/></symbol>
+ <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+ <symbol id="i-door" viewBox="0 0 24 24"><path d="M5 21V4a1 1 0 0 1 1-1h8l5 3v15M3 21h18M14 12h.01"/></symbol>
+ <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/></symbol>
+ <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.2A7 7 0 0 1 19 9.8C19 14.8 12 21 12 21z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+ <symbol id="i-ok" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+</defs></svg>
+<div class="tabs"><button class="on" data-t="menu">1 · Menu mobile</button><button data-t="hero">2 · Hero iPad</button><button data-t="foot">3 · Footer blog</button></div>
+
+<!-- ============ 1 ============ -->
+<section class="stage" id="t-menu">
+ <div class="bar"><button id="mOpen" class="on">Mở menu</button><button id="mClose">Đóng menu</button></div>
+ <div class="phone"><div class="site" id="mSite" data-theme="light">
+  <div class="mesh"><i></i><i></i></div>
+  <div class="page"><div class="nav"><div class="logo"><i><svg width="22" height="22" viewBox="0 0 40 40" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 28h5l5-5" stroke-opacity=".6"/><path d="M9 14h5l5 9 12-12"/></svg></i>Vote <b>Đi</b></div><button class="burger" aria-label="Mở menu"><svg class="ico"><use href="#i-menu"/></svg></button></div>
+   <h1>Cả nhóm rủ nhau chọn nhưng mãi không chốt được?</h1><p>Trang web tạo bình chọn online giúp hội bạn, lớp và team chốt nhanh.</p></div>
+  <div class="scrim"></div>
+  <nav class="drawer" aria-label="Menu chính">
+   <div class="dh"><div class="logo"><i><svg width="22" height="22" viewBox="0 0 40 40" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 28h5l5-5" stroke-opacity=".6"/><path d="M9 14h5l5 9 12-12"/></svg></i>Vote <b>Đi</b></div><button class="burger" id="mx" aria-label="Đóng menu"><svg class="ico"><use href="#i-x"/></svg></button></div>
+   <div class="dscroll">
+    <span class="lab" style="margin-top:6px">Tạo vote</span>
+    <div class="fgrid">
+     <a class="ft" href="#"><span class="ti"><svg class="ico"><use href="#i-bolt"/></svg></span>Bình chọn nhanh</a>
+     <a class="ft" href="#"><span class="ti"><svg class="ico"><use href="#i-cup"/></svg></span>Đấu loại World Cup</a>
+     <a class="ft" href="#"><span class="ti"><svg class="ico"><use href="#i-cal"/></svg></span>Chọn lịch rảnh</a>
+     <a class="ft" href="#"><span class="ti"><svg class="ico"><use href="#i-layers"/></svg></span>Quẹt chọn</a>
+     <a class="ft" href="#"><span class="ti"><svg class="ico"><use href="#i-bars"/></svg></span>Xếp hạng</a>
+     <a class="ft" href="#"><span class="ti"><svg class="ico"><use href="#i-star"/></svg></span>Chấm điểm</a>
+    </div>
+    <a class="all" href="#">Xem tất cả mẫu<svg class="ico"><use href="#i-arr"/></svg></a>
+    <span class="lab">Khám phá</span>
+    <a class="row" href="#"><svg class="ico ri"><use href="#i-tpl"/></svg>Mẫu có sẵn<svg class="ico ch"><use href="#i-ch"/></svg></a>
+    <a class="row" href="#"><svg class="ico ri"><use href="#i-layers"/></svg>Kiểu vote<svg class="ico ch"><use href="#i-ch"/></svg></a>
+    <a class="row" href="#"><svg class="ico ri"><use href="#i-book"/></svg>Hướng dẫn<svg class="ico ch"><use href="#i-ch"/></svg></a>
+    <a class="row" href="#"><svg class="ico ri"><use href="#i-pen"/></svg>Blog<svg class="ico ch"><use href="#i-ch"/></svg></a>
+    <a class="row" href="#"><svg class="ico ri"><use href="#i-info"/></svg>Giới thiệu<svg class="ico ch"><use href="#i-ch"/></svg></a>
+    <span class="lab">Tài khoản</span>
+    <a class="row" href="#"><svg class="ico ri"><use href="#i-door"/></svg>Phòng của tôi<svg class="ico ch"><use href="#i-ch"/></svg></a>
+   </div>
+   <div class="dfoot">
+    <button class="theme" id="mTheme" role="switch" aria-checked="false"><span><svg class="ico" width="20" height="20"><use href="#i-moon"/></svg>Giao diện tối</span><i class="sw"></i></button>
+    <a class="btn btn-p" href="#">Tạo phòng miễn phí</a>
+   </div>
+  </nav>
+ </div></div>
+ <p class="note">Menu thành trang phủ kín: nhóm "Tạo vote" là lưới 2 cột có biểu tượng, các mục còn lại là hàng cao 52px chữ 17px. Nút Tạo phòng ghim ở đáy để luôn bấm được.</p>
+</section>
+
+<!-- ============ 2 ============ -->
+<section class="stage" id="t-hero" hidden>
+ <div class="bar" id="wBar"><button data-w="768" class="on">iPad dọc 768</button><button data-w="834">iPad Air dọc 834</button><button data-w="1024">iPad ngang 1024</button><button data-w="1180">iPad ngang 1180</button></div>
+ <div id="devBox"><div class="dev site" id="dev" data-theme="light">
+  <div class="mesh"><i></i><i></i></div>
+  <div class="hero"><div class="wrap">
+   <div class="txt">
+    <span class="proof"><span class="st"><span class="av" style="background:#0EA5A4">H</span><span class="av" style="background:#0891B2">L</span><span class="av" style="background:#F59E0B">M</span><span class="av" style="background:#E5484D">T</span></span><i class="dot"></i>Cả nhóm vote cùng lúc, thấy ai chọn gì</span>
+    <h1 style="margin-top:22px">Cả nhóm rủ nhau chọn nhưng <span class="g">mãi không chốt được?</span></h1>
+    <div class="h1b"><span class="pill">Vote Đi</span><span>để chốt ngay!</span></div>
+    <p class="lead">Trang web tạo bình chọn online giúp hội bạn, lớp và team chốt nhanh: đi đâu chơi, ăn gì, ngày nào ai rảnh, mẫu áo nào. Gửi link Zalo là vote được. <b>Hết giờ là có kết quả.</b></p>
+    <div class="ctas"><a class="btn btn-p" href="#">Tạo phòng miễn phí</a><a class="btn btn-g" href="#">Xem các kiểu vote</a></div>
+    <div class="ticks"><span><svg class="ico"><use href="#i-ok"/></svg>Không cần tài khoản</span><span><svg class="ico"><use href="#i-ok"/></svg>Có link là vào</span><span><svg class="ico"><use href="#i-ok"/></svg>Làm cho điện thoại</span></div>
+   </div>
+   <div class="demo">
+    <div class="dcard">
+     <div class="dchip"><span class="av" style="background:#0891B2">L</span>Linh vừa chọn xong</div>
+     <div class="dq"><div><b>Cuối tuần đi đâu chơi?</b><small>Chọn 1 địa điểm</small></div><span class="tag">1 ngày</span></div>
+     <div class="opt top"><span class="im" style="background:linear-gradient(135deg,#19C9A7,#0891B2)"><svg class="ico"><use href="#i-pin"/></svg></span><div><b>Bán đảo Sơn Trà</b><small>Ngắm hoàng hôn · 80k/người</small></div><div class="n">4<small>phiếu</small></div></div>
+     <div class="opt"><span class="im" style="background:linear-gradient(135deg,#38A3D8,#2A6AD6)"><svg class="ico"><use href="#i-pin"/></svg></span><div><b>Phố cổ Hội An</b><small>Ăn tối + đi bộ · 150k/người</small></div><div class="n">2<small>phiếu</small></div></div>
+     <div class="opt"><span class="im" style="background:linear-gradient(135deg,#F5B13B,#E58A12)"><svg class="ico"><use href="#i-pin"/></svg></span><div><b>Bà Nà Hills</b><small>Cả ngày · 900k/người</small></div><div class="n">0<small>phiếu</small></div></div>
+     <div class="dfoot2"><span><b style="color:var(--s-ink)">6/6</b> người đã vote</span><span>Có bản đồ và chỉ đường</span></div>
+    </div>
+    <div style="text-align:center"><div class="seg"><span><svg class="ico"><use href="#i-cup"/></svg>Đấu loại</span><span><svg class="ico"><use href="#i-cal"/></svg>Chọn ngày</span><span class="on"><svg class="ico"><use href="#i-pin"/></svg>Đi đâu chơi</span></div></div>
+   </div>
+  </div></div>
+ </div></div>
+ <p class="note" id="hnote"></p>
+</section>
+
+<!-- ============ 3 ============ -->
+<section class="stage" id="t-foot" hidden>
+ <div class="fwrap">
+  <div><p class="note" style="margin-bottom:8px;font-weight:700">Nền sáng (mặc định)</p>
+   <div class="site foot" data-theme="light"><div class="fgrid2">
+    <div><div class="logo"><i><svg width="22" height="22" viewBox="0 0 40 40" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 28h5l5-5" stroke-opacity=".6"/><path d="M9 14h5l5 9 12-12"/></svg></i>Vote <b>Đi</b></div><p>Trang web tạo bình chọn online giúp hội bạn, lớp và team chốt nhanh địa điểm ăn chơi, ngày đi, mẫu áo.</p></div>
+    <div><h5>Kiểu vote</h5><a href="#">Bình chọn nhanh</a><a href="#">Đấu loại World Cup</a><a href="#">Chọn lịch rảnh</a><a href="#">Quẹt chọn</a></div>
+    <div><h5>Tài nguyên</h5><a href="#">Hướng dẫn</a><a href="#">Blog</a><a href="#">Giới thiệu</a><a href="#">Liên hệ</a></div>
+   </div><div class="copy">© 2026 Vote Đi · votedi.vn<div class="cr">Chữ liên kết #4A6066 trên nền #F3F8F8 · độ tương phản 6,2 : 1</div></div></div></div>
+  <div><p class="note" style="margin-bottom:8px;font-weight:700">Nền tối (Giao diện tối)</p>
+   <div class="site foot" data-theme="dark"><div class="fgrid2">
+    <div><div class="logo"><i><svg width="22" height="22" viewBox="0 0 40 40" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 28h5l5-5" stroke-opacity=".6"/><path d="M9 14h5l5 9 12-12"/></svg></i>Vote <b>Đi</b></div><p>Trang web tạo bình chọn online giúp hội bạn, lớp và team chốt nhanh địa điểm ăn chơi, ngày đi, mẫu áo.</p></div>
+    <div><h5>Kiểu vote</h5><a href="#">Bình chọn nhanh</a><a href="#">Đấu loại World Cup</a><a href="#">Chọn lịch rảnh</a><a href="#">Quẹt chọn</a></div>
+    <div><h5>Tài nguyên</h5><a href="#">Hướng dẫn</a><a href="#">Blog</a><a href="#">Giới thiệu</a><a href="#">Liên hệ</a></div>
+   </div><div class="copy">© 2026 Vote Đi · votedi.vn<div class="cr">Chữ liên kết #B4C8CC trên nền #0A1519 · độ tương phản 10,7 : 1</div></div></div></div>
+ </div>
+ <p class="note">Lỗi cũ: chữ liên kết của footer dùng màu trắng (thiết kế cho nền tối) nhưng trang đang ở nền sáng. Cách sửa: footer chỉ dùng biến màu theo giao diện, không hard-code màu trắng.</p>
+</section>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+$$('.tabs button').forEach(b=>b.onclick=()=>{$$('.tabs button').forEach(x=>x.classList.toggle('on',x===b));['menu','hero','foot'].forEach(k=>$('#t-'+k).hidden=k!==b.dataset.t);if(b.dataset.t==='hero')fit()});
+/* menu */
+const ms=$('#mSite');const setM=o=>{ms.classList.toggle('open',o);$('#mOpen').classList.toggle('on',o);$('#mClose').classList.toggle('on',!o)};
+$('#mOpen').onclick=()=>setM(true);$('#mClose').onclick=()=>setM(false);$('#mx').onclick=()=>setM(false);$('.burger[aria-label="Mở menu"]').onclick=()=>setM(true);$('.scrim').onclick=()=>setM(false);
+$('#mTheme').onclick=function(){const d=ms.dataset.theme!=='dark';ms.dataset.theme=d?'dark':'light';this.setAttribute('aria-checked',d);this.querySelector('.sw').classList.toggle('on',d)};
+setM(true);
+/* hero widths */
+let W=768;
+const NOTE={768:'iPad dọc: khối chữ căn giữa, thẻ demo rộng đủ 560px ở giữa, nút chế độ nằm giữa dưới thẻ. Không còn khoảng trống bên phải.',834:'iPad Air dọc: cùng bố cục xếp dọc, chữ lớn hơn một chút.',1024:'iPad ngang: 2 cột. Chữ bên trái, thẻ demo bên phải, ngang hàng nhau nên thấy cả nội dung lẫn demo mà không cần cuộn.',1180:'iPad Pro ngang: 2 cột, khoảng cách rộng hơn.'};
+function fit(){const dev=$('#dev'),box=$('#devBox');dev.style.width=W+'px';dev.classList.toggle('wide',W>=1024);dev.style.setProperty('--h1',({768:'44px',834:'48px',1024:'38px',1180:'46px'})[W]);dev.style.setProperty('--lead',W>=1180?'18px':W>=1024?'16.5px':'18px');const s=Math.min(1,(innerWidth-24)/W);dev.style.transform=`scale(${s})`;box.style.width=W*s+'px';box.style.height=dev.offsetHeight*s+'px';$('#hnote').textContent=NOTE[W]}
+$$('#wBar button').forEach(b=>b.onclick=()=>{W=+b.dataset.w;$$('#wBar button').forEach(x=>x.classList.toggle('on',x===b));fit()});
+addEventListener('resize',fit);document.fonts.ready.then(fit);
+</script>
+</body>
+</html>

@@ -35,9 +35,11 @@ const MESSAGES: Record<string, string> = {
   NOT_MAPS: "Đây không phải link Google Maps.",
   ANON_LOCKED: "Đã có phiếu: chỉ bật ẩn danh được, không tắt lại.",
   DISABLED: "Chủ phòng đã tắt tính năng này.",
-  PGRST202: "Chưa có hàm trên Supabase (schema cache). Chạy migration mới nhất rồi thử lại.",
-  PGRST204: "Thiếu cột trên bảng. Chạy lần lượt các migration còn thiếu.",
+  PGRST202: "Chưa tải được dữ liệu, thử lại sau.",
+  PGRST204: "Chưa tải được dữ liệu, thử lại sau.",
 };
+
+const isDev = process.env.NODE_ENV === "development";
 
 type ErrorLike = {
   message?: string;
@@ -68,6 +70,17 @@ export function extractMissingRpcName(raw: string): string | null {
   return null;
 }
 
+function missingRpcUserMessage(raw: string): string {
+  if (isDev) {
+    const fn = extractMissingRpcName(raw);
+    if (fn) {
+      return `Chưa có hàm “${fn}” trên Supabase. Chạy migration có hàm này (xem npm run db:check) rồi thử lại.`;
+    }
+    return `Chưa có RPC trên server (schema cache). Chạy các migration còn thiếu rồi thử lại. Chi tiết: ${raw}`;
+  }
+  return "Chưa tải được danh sách phòng, thử lại";
+}
+
 /** Dịch mã quen thuộc; lỗi lạ giữ nguyên message (+ code). */
 export function errorMessage(error: unknown): string {
   const err = asError(error);
@@ -76,9 +89,8 @@ export function errorMessage(error: unknown): string {
 
   for (const [key, text] of Object.entries(MESSAGES)) {
     if (raw.includes(key) || code === key) {
-      if (key === "PGRST202" || code === "PGRST202") {
-        const fn = extractMissingRpcName(raw);
-        if (fn) return `Chưa có hàm “${fn}” trên Supabase. Chạy migration có hàm này (xem npm run db:check) rồi thử lại.`;
+      if (key === "PGRST202" || code === "PGRST202" || key === "PGRST204" || code === "PGRST204") {
+        return missingRpcUserMessage(raw);
       }
       return text;
     }
@@ -87,43 +99,63 @@ export function errorMessage(error: unknown): string {
     return "Hãy bật Anonymous sign-in trong Supabase rồi tải lại trang.";
   }
   if (/Failed to find|Could not find the function|schema cache/i.test(raw) || code === "PGRST202") {
-    const fn = extractMissingRpcName(raw);
-    if (fn) {
-      return `Chưa có hàm “${fn}” trên Supabase. Chạy migration tương ứng (npm run db:check) rồi thử lại.`;
-    }
-    return `Chưa có RPC trên server (schema cache). Chạy các migration còn thiếu rồi thử lại. Chi tiết: ${raw}${code ? ` · ${code}` : ""}`;
+    return missingRpcUserMessage(raw);
   }
   if (/Failed to fetch|NetworkError|network/i.test(raw)) {
     return "Mất mạng. Kiểm tra kết nối rồi thử lại.";
   }
   if (/check constraint|rooms_status_check/i.test(raw)) {
-    return `Trạng thái phòng không hợp lệ. Chạy 0004 rồi 0005_seeding.sql. Chi tiết: ${raw}`;
+    return isDev
+      ? `Trạng thái phòng không hợp lệ. Chạy 0004 rồi 0005_seeding.sql. Chi tiết: ${raw}`
+      : "Có lỗi xảy ra. Thử lại nhé.";
   }
   if (/function max\(uuid\)|42883/i.test(raw)) {
-    return `Lỗi SQL max(uuid). Chạy supabase/migrations/0004_fix_uuid_autodraw.sql rồi thử lại. Chi tiết: ${raw}${code ? ` · ${code}` : ""}`;
+    return isDev
+      ? `Lỗi SQL max(uuid). Chạy supabase/migrations/0004_fix_uuid_autodraw.sql rồi thử lại. Chi tiết: ${raw}${code ? ` · ${code}` : ""}`
+      : "Có lỗi xảy ra. Thử lại nhé.";
   }
   if (/is ambiguous|42702/i.test(raw) || code === "42702") {
-    return `Lỗi SQL khi xếp nhánh. Chạy supabase/migrations/0007_upload_password.sql rồi thử lại. Chi tiết: ${raw}`;
+    return isDev
+      ? `Lỗi SQL khi xếp nhánh. Chạy supabase/migrations/0007_upload_password.sql rồi thử lại. Chi tiết: ${raw}`
+      : "Có lỗi xảy ra. Thử lại nhé.";
   }
   if (/row-level security/i.test(raw) || code === "42501") {
-    return `Supabase chặn quyền ghi (RLS). Chạy supabase/migrations/0007_upload_password.sql rồi thử lại. Chi tiết: ${raw}`;
+    return isDev
+      ? `Supabase chặn quyền ghi (RLS). Chạy supabase/migrations/0007_upload_password.sql rồi thử lại. Chi tiết: ${raw}`
+      : "Có lỗi xảy ra. Thử lại nhé.";
   }
   if (/has_password|password_hash.*not-null/i.test(raw)) {
-    return `Database chưa cập nhật phần mật khẩu. Chạy supabase/migrations/0007_upload_password.sql rồi thử lại. Chi tiết: ${raw}`;
+    return isDev
+      ? `Database chưa cập nhật phần mật khẩu. Chạy supabase/migrations/0007_upload_password.sql rồi thử lại. Chi tiết: ${raw}`
+      : "Có lỗi xảy ra. Thử lại nhé.";
   }
   if (/column .*(format|settings|item_type|deadline)|relation .*votes/i.test(raw)) {
-    return `Database chưa có phần kiểu vote mới. Chạy supabase/migrations/0008_formats_foundation.sql rồi thử lại. Chi tiết: ${raw}`;
+    return isDev
+      ? `Database chưa có phần kiểu vote mới. Chạy supabase/migrations/0008_formats_foundation.sql rồi thử lại. Chi tiết: ${raw}`
+      : "Có lỗi xảy ra. Thử lại nhé.";
   }
   if (/seeding_mode|column .* does not exist/i.test(raw)) {
-    return `Thiếu cột seeding_mode. Chạy supabase/migrations/0005_seeding.sql rồi thử lại. Chi tiết: ${raw}`;
+    return isDev
+      ? `Thiếu cột seeding_mode. Chạy supabase/migrations/0005_seeding.sql rồi thử lại. Chi tiết: ${raw}`
+      : "Có lỗi xảy ra. Thử lại nhé.";
   }
 
-  const bits = [raw || null, code || null].filter(Boolean);
-  return bits.length > 0 ? bits.join(" · ") : "Có lỗi xảy ra. Thử lại nhé.";
+  if (isDev) {
+    const bits = [raw || null, code || null].filter(Boolean);
+    return bits.length > 0 ? bits.join(" · ") : "Có lỗi xảy ra. Thử lại nhé.";
+  }
+  return "Có lỗi xảy ra. Thử lại nhé.";
 }
 
 /** console.error đầy đủ + trả về chuỗi toast. */
 export function reportError(error: unknown): string {
   console.error("[Vote Đi]", error);
   return errorMessage(error);
+}
+
+/** Thông báo tải danh sách phòng (/phong-cua-toi). */
+export function myRoomsLoadError(error: unknown): string {
+  console.error("[Vote Đi] list_my_rooms", error);
+  if (isDev) return errorMessage(error);
+  return "Chưa tải được danh sách phòng, thử lại";
 }

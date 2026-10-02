@@ -15,7 +15,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { errorMessage, reportError } from "@/lib/errors";
+import { myRoomsLoadError, reportError } from "@/lib/errors";
 import { ensureUser } from "@/lib/storage";
 import type { FormatId, RoomStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -107,7 +107,7 @@ export function MyRooms() {
       setError(null);
       setRooms((data as MyRoomRow[]) ?? []);
     } catch (reason) {
-      setError(errorMessage(reason));
+      setError(myRoomsLoadError(reason));
       setRooms([]);
     }
   }, []);

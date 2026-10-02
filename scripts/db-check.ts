@@ -2,11 +2,14 @@
  * npm run db:check
  * So sánh RPC/bảng mà code cần với OpenAPI của PostgREST
  * (GET {SUPABASE_URL}/rest/v1/ với apikey + Authorization).
+ *
+ * Đọc .env.local thủ công và cắt \r / khoảng trắng ở cả khóa lẫn giá trị
+ * (tránh báo thiếu RPC sai khi CRLF làm hỏng SUPABASE_SECRET_KEY).
  */
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-const REQUIRED_RPCS = [
+const BASE_RPCS = [
   "create_room",
   "create_room_v2",
   "preview_room",
@@ -55,6 +58,7 @@ const REQUIRED_RPCS = [
   "duplicate_room",
   "delete_room",
   "list_my_rooms",
+  "rematch_room",
 ] as const;
 
 const REQUIRED_TABLES = [
@@ -78,7 +82,55 @@ function trimEnv(value: string | undefined) {
   return (value ?? "").replace(/\r/g, "").trim();
 }
 
-function migrationHints(migrationsDir: string) {
+/** Nạp .env.local: cắt \\r khỏi khóa và giá trị trước khi ghi vào process.env. */
+function loadEnvFile(filePath: string) {
+  if (!existsSync(filePath)) return;
+  const text = readFileSync(filePath, "utf8");
+  for (const rawLine of text.split(/\n/)) {
+    const line = rawLine.replace(/\r/g, "").trim();
+    if (!line || line.startsWith("#")) continue;
+    const eq = line.indexOf("=");
+    if (eq <= 0) continue;
+    const key = line.slice(0, eq).trim().replace(/\r/g, "");
+    let val = line.slice(eq + 1).replace(/\r/g, "").trim();
+    if (
+      (val.startsWith('"') && val.endsWith('"')) ||
+      (val.startsWith("'") && val.endsWith("'"))
+    ) {
+      val = val.slice(1, -1);
+    }
+    if (key) process.env[key] = val;
+  }
+}
+
+function scanRpcCallsFromSrc(srcRoot: string): string[] {
+  const found = new Set<string>();
+  const walk = (dir: string) => {
+    let entries: import("node:fs").Dirent[] = [];
+    try {
+      entries = readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const ent of entries) {
+      if (ent.name === "node_modules" || ent.name.startsWith(".")) continue;
+      const full = join(dir, ent.name);
+      if (ent.isDirectory()) {
+        walk(full);
+        continue;
+      }
+      if (!/\.(ts|tsx|js|jsx)$/.test(ent.name)) continue;
+      const body = readFileSync(full, "utf8");
+      const re = /\.rpc\(\s*["'`]([a-zA-Z0-9_]+)["'`]/g;
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(body))) found.add(m[1]!);
+    }
+  };
+  walk(srcRoot);
+  return [...found].sort();
+}
+
+function migrationHints(migrationsDir: string, names: string[]) {
   const map = new Map<string, string[]>();
   let files: string[] = [];
   try {
@@ -88,7 +140,7 @@ function migrationHints(migrationsDir: string) {
   }
   for (const file of files) {
     const body = readFileSync(join(migrationsDir, file), "utf8");
-    for (const name of [...REQUIRED_RPCS, ...REQUIRED_TABLES]) {
+    for (const name of names) {
       const rpcHit =
         new RegExp(`create\\s+or\\s+replace\\s+function\\s+public\\.${name}\\b`, "i").test(body) ||
         new RegExp(`function\\s+public\\.${name}\\b`, "i").test(body);
@@ -133,6 +185,9 @@ function collectFromOpenApi(doc: OpenApiDoc) {
 }
 
 async function main() {
+  loadEnvFile(join(process.cwd(), ".env.local"));
+  loadEnvFile(join(process.cwd(), ".env"));
+
   const url = trimEnv(process.env.NEXT_PUBLIC_SUPABASE_URL).replace(/\/$/, "");
   const key = trimEnv(process.env.SUPABASE_SECRET_KEY);
   if (!url || !key) {
@@ -140,7 +195,11 @@ async function main() {
     process.exit(1);
   }
 
+  const fromSrc = scanRpcCallsFromSrc(join(process.cwd(), "src"));
+  const REQUIRED_RPCS = [...new Set([...BASE_RPCS, ...fromSrc])].sort();
+
   console.log("=== Vote Đi · db:check ===\n");
+  console.log(`RPC cần kiểm tra: ${REQUIRED_RPCS.length} (base + quét src)\n`);
 
   let res: Response;
   try {
@@ -175,7 +234,7 @@ async function main() {
 
   const { rpcs, tables } = collectFromOpenApi(doc);
   const migrationsDir = join(process.cwd(), "supabase", "migrations");
-  const hints = migrationHints(migrationsDir);
+  const hints = migrationHints(migrationsDir, [...REQUIRED_RPCS, ...REQUIRED_TABLES]);
 
   const missingRpcs = REQUIRED_RPCS.filter((name) => !rpcs.has(name));
   const missingTables = REQUIRED_TABLES.filter((name) => !tables.has(name));
