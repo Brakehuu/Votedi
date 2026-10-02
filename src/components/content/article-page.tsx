@@ -9,6 +9,7 @@ import { PostShell } from "@/components/content/post-shell";
 import { TemplateIcon } from "@/components/seo/template-icon";
 import type { ContentDoc } from "@/lib/content";
 import { formatDateVi, readingLabel } from "@/lib/content/display";
+import { normalizeTopic } from "@/lib/content/topics";
 import { getTemplate } from "@/lib/templates";
 import { absoluteUrl } from "@/lib/site";
 import { breadcrumbList, faqPage, jsonLd } from "@/lib/seo";
@@ -86,11 +87,18 @@ export function ArticlePage({
               ) : (
                 <Chip>{basePath === "/blog" ? "Blog" : "Hướng dẫn"}</Chip>
               )}
-              {extraTags.map((t) => (
-                <Chip key={t} muted>
-                  {t}
-                </Chip>
-              ))}
+              {extraTags.map((t) => {
+                const topic = normalizeTopic(t);
+                return topic && basePath === "/blog" ? (
+                  <Chip key={t} href={`/blog/chu-de/${topic.slug}`}>
+                    {t}
+                  </Chip>
+                ) : (
+                  <Chip key={t} muted>
+                    {t}
+                  </Chip>
+                );
+              })}
               {doc.draft ? <Chip muted>Nháp</Chip> : null}
             </ChipRow>
             <h1>{doc.title}</h1>

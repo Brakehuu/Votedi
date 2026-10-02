@@ -30,7 +30,13 @@ export async function generateMetadata({
       description: doc.description,
       type: "article",
       url: absoluteUrl(`/blog/${doc.slug}`),
-      images: [{ url: absoluteUrl(cover) }],
+      images: [
+        {
+          url: absoluteUrl(cover),
+          width: doc.coverWidth ?? 1200,
+          height: doc.coverHeight ?? 630,
+        },
+      ],
     },
   };
 }

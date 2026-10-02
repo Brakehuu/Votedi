@@ -19,6 +19,8 @@ test("reading time ~200 wpm", () => {
 test("normalize topics", () => {
   assert.equal(normalizeTopic("du-lich")?.name, "Du lịch");
   assert.equal(normalizeTopic("Áo lớp")?.slug, "ao-lop-thiet-ke");
+  assert.equal(normalizeTopic("Tạo vote")?.slug, "tao-vote");
+  assert.equal(normalizeTopic("Chọn áo nhóm")?.slug, "chon-ao-nhom");
   const tags = normalizeTags(["zalo", "Chọn ngày", "hop lop"]);
   assert.equal(primaryTopic(tags)?.slug, "chon-ngay");
   assert.equal(tags[0], "Chọn ngày");

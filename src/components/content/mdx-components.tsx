@@ -63,6 +63,14 @@ function headingText(children: React.ReactNode): string {
   return String(children ?? "");
 }
 
+function BlogTable(props: React.TableHTMLAttributes<HTMLTableElement>) {
+  return (
+    <div className="blog-tbl">
+      <table {...props} />
+    </div>
+  );
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function createMdxComponents(assetMap: Record<string, AssetMeta>): Record<string, any> {
   return {
@@ -83,11 +91,7 @@ export function createMdxComponents(assetMap: Record<string, AssetMeta>): Record
       if (!src) return null;
       return <MdxFigure src={src} alt={alt} title={title} width={width} height={height} />;
     },
-    table: (props: React.TableHTMLAttributes<HTMLTableElement>) => (
-      <div className="blog-tbl">
-        <table {...props} />
-      </div>
-    ),
+    table: BlogTable,
   };
 }
 

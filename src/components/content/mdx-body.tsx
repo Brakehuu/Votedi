@@ -1,7 +1,15 @@
 import { MDXRemote } from "next-mdx-remote/rsc";
+import remarkGfm from "remark-gfm";
+import remarkUnwrapImages from "remark-unwrap-images";
 import { createMdxComponents } from "@/components/content/mdx-components";
 import type { AssetMeta } from "@/lib/content";
 import { SummaryBox } from "@/components/content/article-chrome";
+
+const mdxOptions = {
+  mdxOptions: {
+    remarkPlugins: [remarkGfm, remarkUnwrapImages],
+  },
+};
 
 export function MdxBody({
   source,
@@ -17,10 +25,10 @@ export function MdxBody({
     <div className="blog-prose">
       {summary ? (
         <SummaryBox>
-          <MDXRemote source={summary} components={components} />
+          <MDXRemote source={summary} components={components} options={mdxOptions} />
         </SummaryBox>
       ) : null}
-      <MDXRemote source={source} components={components} />
+      <MDXRemote source={source} components={components} options={mdxOptions} />
     </div>
   );
 }

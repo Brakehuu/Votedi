@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { slugifyHeading } from "@/lib/content/preprocess";
 export function MdxFigure({
   src,
   alt,
@@ -77,12 +78,15 @@ export function FaqAccordion({ items }: { items: { q: string; a: string }[] }) {
           #
         </a>
       </h2>
-      {items.map((item) => (
-        <details key={item.q}>
-          <summary>{item.q}</summary>
-          <p>{item.a}</p>
-        </details>
-      ))}
+      {items.map((item) => {
+        const id = slugifyHeading(item.q);
+        return (
+          <details key={item.q} id={id}>
+            <summary>{item.q}</summary>
+            <p>{item.a}</p>
+          </details>
+        );
+      })}
     </div>
   );
 }

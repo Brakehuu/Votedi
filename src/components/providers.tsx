@@ -51,6 +51,7 @@ function OfflineBanner() {
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  const onVercel = Boolean(process.env.NEXT_PUBLIC_VERCEL_ENV || process.env.VERCEL);
   return (
     <ThemeProvider
       attribute="class"
@@ -62,8 +63,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <OfflineBanner />
       {children}
       <ToastHost />
-      <Analytics />
-      <SpeedInsights />
+      {onVercel ? (
+        <>
+          <Analytics />
+          <SpeedInsights />
+        </>
+      ) : null}
     </ThemeProvider>
   );
 }

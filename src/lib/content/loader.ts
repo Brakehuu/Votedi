@@ -3,8 +3,8 @@ import path from "node:path";
 import matter from "gray-matter";
 import { imageSize } from "image-size";
 import { readingMinutesFromText } from "@/lib/content/reading-time";
-import { extractToc, flattenToc, preprocessBody, type FaqItem, type TocItem } from "@/lib/content/preprocess";
-import { normalizeTags, primaryTopic } from "@/lib/content/topics";
+import { extractToc, flattenToc, preprocessBody, slugifyHeading, type FaqItem, type TocItem } from "@/lib/content/preprocess";
+import { normalizeTags, normalizeTopic, primaryTopic } from "@/lib/content/topics";
 
 export type ContentKind = "blog" | "huong-dan";
 
@@ -191,6 +191,19 @@ function readPost(kind: ContentKind, slug: string): ContentDoc | null {
   const rewritten = rewriteRelativeImages(content, kind, slug);
   const { body, summary, faq } = preprocessBody(rewritten);
   const toc = extractToc(body);
+  if (faq.length) {
+    const faqNode: TocItem = {
+      id: "cau-hoi-thuong-gap",
+      text: "Câu hỏi thường gặp",
+      level: 2,
+      children: faq.map((item) => ({
+        id: slugifyHeading(item.q),
+        text: item.q,
+        level: 3,
+      })),
+    };
+    toc.push(faqNode);
+  }
   const readingMinutes = readingMinutesFromText([summary, body, faq.map((f) => `${f.q} ${f.a}`).join(" ")].filter(Boolean).join("\n"));
 
   return {
@@ -244,12 +257,15 @@ export function getContent(kind: ContentKind, slug: string, opts?: ListOpts) {
 export function allTopicCounts(kind: ContentKind = "blog") {
   const counts = new Map<string, { name: string; slug: string; count: number }>();
   for (const doc of listContent(kind)) {
-    const slug = doc.primaryTopicSlug;
-    const name = doc.primaryTopic;
-    if (!slug || !name) continue;
-    const cur = counts.get(slug) ?? { name, slug, count: 0 };
-    cur.count += 1;
-    counts.set(slug, cur);
+    const seen = new Set<string>();
+    for (const tag of doc.tags) {
+      const topic = normalizeTopic(tag);
+      if (!topic || seen.has(topic.slug)) continue;
+      seen.add(topic.slug);
+      const cur = counts.get(topic.slug) ?? { name: topic.name, slug: topic.slug, count: 0 };
+      cur.count += 1;
+      counts.set(topic.slug, cur);
+    }
   }
   return [...counts.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "vi"));
 }

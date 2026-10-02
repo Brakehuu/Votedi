@@ -7,6 +7,8 @@ export const BLOG_TOPICS = [
   { name: "Hướng dẫn", slug: "huong-dan" },
   { name: "So sánh", slug: "so-sanh" },
   { name: "Cộng đồng & cuộc thi", slug: "cong-dong-cuoc-thi" },
+  { name: "Tạo vote", slug: "tao-vote" },
+  { name: "Chọn áo nhóm", slug: "chon-ao-nhom" },
 ] as const;
 
 export type BlogTopicName = (typeof BLOG_TOPICS)[number]["name"];
@@ -35,6 +37,11 @@ const ALIASES: Record<string, BlogTopicSlug> = {
   "so sanh": "so-sanh",
   "cong dong": "cong-dong-cuoc-thi",
   "cong dong cuoc thi": "cong-dong-cuoc-thi",
+  "tao vote": "tao-vote",
+  "tao-vote": "tao-vote",
+  "chon ao nhom": "chon-ao-nhom",
+  "chon-ao-nhom": "chon-ao-nhom",
+  "ao nhom": "chon-ao-nhom",
   schedule: "chon-ngay",
   bracket: "ao-lop-thiet-ke",
   "ao-lop": "ao-lop-thiet-ke",
